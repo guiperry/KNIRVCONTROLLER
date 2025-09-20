@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="250" failures="0" errors="0" time="13.171">
+  <testsuite name="TaskScheduler" errors="0" failures="0" skipped="30" timestamp="2025-09-16T16:25:24" time="2.11" tests="30">
+    <testcase classname="TaskScheduler Rendering should not render when isOpen is false" name="TaskScheduler Rendering should not render when isOpen is false" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Rendering should render when isOpen is true" name="TaskScheduler Rendering should render when isOpen is true" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Rendering should render all tabs" name="TaskScheduler Rendering should render all tabs" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task List Display should display tasks when available" name="TaskScheduler Task List Display should display tasks when available" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task List Display should display task status icons correctly" name="TaskScheduler Task List Display should display task status icons correctly" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task List Display should display priority badges correctly" name="TaskScheduler Task List Display should display priority badges correctly" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task List Display should display task statistics" name="TaskScheduler Task List Display should display task statistics" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task List Display should show empty state when no tasks exist" name="TaskScheduler Task List Display should show empty state when no tasks exist" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Actions should execute task when play button is clicked" name="TaskScheduler Task Actions should execute task when play button is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Actions should delete task when delete button is clicked" name="TaskScheduler Task Actions should delete task when delete button is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Actions should refresh task list after actions" name="TaskScheduler Task Actions should refresh task list after actions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Tab Navigation should switch to create task tab" name="TaskScheduler Tab Navigation should switch to create task tab" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Tab Navigation should switch to executions tab" name="TaskScheduler Tab Navigation should switch to executions tab" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Tab Navigation should highlight active tab" name="TaskScheduler Tab Navigation should highlight active tab" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Creation Form should render all form fields" name="TaskScheduler Task Creation Form should render all form fields" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Creation Form should show interval field for recurring tasks" name="TaskScheduler Task Creation Form should show interval field for recurring tasks" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Creation Form should submit form with valid data" name="TaskScheduler Task Creation Form should submit form with valid data" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Creation Form should cancel form and return to tasks tab" name="TaskScheduler Task Creation Form should cancel form and return to tasks tab" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Task Creation Form should validate required fields" name="TaskScheduler Task Creation Form should validate required fields" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Executions Display should display execution history for tasks" name="TaskScheduler Executions Display should display execution history for tasks" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Executions Display should show execution status and duration" name="TaskScheduler Executions Display should show execution status and duration" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Executions Display should limit executions display to 5 per task" name="TaskScheduler Executions Display should limit executions display to 5 per task" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Auto-refresh should auto-refresh every 30 seconds" name="TaskScheduler Auto-refresh should auto-refresh every 30 seconds" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Auto-refresh should stop auto-refresh when component is closed" name="TaskScheduler Auto-refresh should stop auto-refresh when component is closed" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Refresh Button should refresh data when refresh button is clicked" name="TaskScheduler Refresh Button should refresh data when refresh button is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Close Functionality should call onClose when close button is clicked" name="TaskScheduler Close Functionality should call onClose when close button is clicked" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Error Handling should handle task loading errors gracefully" name="TaskScheduler Error Handling should handle task loading errors gracefully" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Error Handling should handle task execution errors gracefully" name="TaskScheduler Error Handling should handle task execution errors gracefully" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Accessibility should have proper ARIA labels" name="TaskScheduler Accessibility should have proper ARIA labels" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="TaskScheduler Accessibility should support keyboard navigation" name="TaskScheduler Accessibility should support keyboard navigation" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="Terminal" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:26" time="2.956" tests="17">
+    <testcase classname="Terminal should render terminal with input field" name="Terminal should render terminal with input field" time="0.251">
+    </testcase>
+    <testcase classname="Terminal should display custom prompt" name="Terminal should display custom prompt" time="0.062">
+    </testcase>
+    <testcase classname="Terminal should execute command on Enter key press" name="Terminal should execute command on Enter key press" time="0.472">
+    </testcase>
+    <testcase classname="Terminal should not execute empty command" name="Terminal should not execute empty command" time="0.036">
+    </testcase>
+    <testcase classname="Terminal should clear input after command execution" name="Terminal should clear input after command execution" time="0.167">
+    </testcase>
+    <testcase classname="Terminal should call onCommand callback when provided" name="Terminal should call onCommand callback when provided" time="0.209">
+    </testcase>
+    <testcase classname="Terminal should display command history from service" name="Terminal should display command history from service" time="0.074">
+    </testcase>
+    <testcase classname="Terminal should display external history when provided" name="Terminal should display external history when provided" time="0.037">
+    </testcase>
+    <testcase classname="Terminal should combine and sort external and service history" name="Terminal should combine and sort external and service history" time="0.04">
+    </testcase>
+    <testcase classname="Terminal should display error messages in red" name="Terminal should display error messages in red" time="0.033">
+    </testcase>
+    <testcase classname="Terminal should show executing state during command execution" name="Terminal should show executing state during command execution" time="0.338">
+    </testcase>
+    <testcase classname="Terminal should auto-scroll to bottom when history updates" name="Terminal should auto-scroll to bottom when history updates" time="0.044">
+    </testcase>
+    <testcase classname="Terminal should handle command execution failure" name="Terminal should handle command execution failure" time="0.459">
+    </testcase>
+    <testcase classname="Terminal should apply custom className" name="Terminal should apply custom className" time="0.026">
+    </testcase>
+    <testcase classname="Terminal should display timestamps for history entries" name="Terminal should display timestamps for history entries" time="0.037">
+    </testcase>
+    <testcase classname="Terminal should refresh command history periodically" name="Terminal should refresh command history periodically" time="0.045">
+    </testcase>
+    <testcase classname="Terminal should cleanup interval on unmount" name="Terminal should cleanup interval on unmount" time="0.026">
+    </testcase>
+  </testsuite>
+  <testsuite name="SettingsService" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:29" time="1.039" tests="32">
+    <testcase classname="SettingsService Initialization should initialize with default settings" name="SettingsService Initialization should initialize with default settings" time="0.011">
+    </testcase>
+    <testcase classname="SettingsService Initialization should load default settings structure" name="SettingsService Initialization should load default settings structure" time="0.066">
+    </testcase>
+    <testcase classname="SettingsService Settings Management should update settings successfully" name="SettingsService Settings Management should update settings successfully" time="0.03">
+    </testcase>
+    <testcase classname="SettingsService Settings Management should validate settings before updating" name="SettingsService Settings Management should validate settings before updating" time="0.097">
+    </testcase>
+    <testcase classname="SettingsService Settings Management should reset settings to defaults" name="SettingsService Settings Management should reset settings to defaults" time="0.01">
+    </testcase>
+    <testcase classname="SettingsService Settings Management should handle backend save failure gracefully" name="SettingsService Settings Management should handle backend save failure gracefully" time="0.01">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should create settings profile successfully" name="SettingsService Profile Management should create settings profile successfully" time="0.012">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should load settings profile successfully" name="SettingsService Profile Management should load settings profile successfully" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should delete settings profile successfully" name="SettingsService Profile Management should delete settings profile successfully" time="0.043">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should not delete default profile" name="SettingsService Profile Management should not delete default profile" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should handle loading non-existent profile" name="SettingsService Profile Management should handle loading non-existent profile" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should get all profiles" name="SettingsService Profile Management should get all profiles" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Profile Management should get active profile" name="SettingsService Profile Management should get active profile" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Import/Export should export settings successfully" name="SettingsService Import/Export should export settings successfully" time="0.01">
+    </testcase>
+    <testcase classname="SettingsService Import/Export should export settings with profiles" name="SettingsService Import/Export should export settings with profiles" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Import/Export should import settings successfully" name="SettingsService Import/Export should import settings successfully" time="0.013">
+    </testcase>
+    <testcase classname="SettingsService Import/Export should merge settings when importing without overwrite" name="SettingsService Import/Export should merge settings when importing without overwrite" time="0.017">
+    </testcase>
+    <testcase classname="SettingsService Import/Export should handle invalid import data" name="SettingsService Import/Export should handle invalid import data" time="0.01">
+    </testcase>
+    <testcase classname="SettingsService Individual Setting Management should get setting by path" name="SettingsService Individual Setting Management should get setting by path" time="0.011">
+    </testcase>
+    <testcase classname="SettingsService Individual Setting Management should return undefined for non-existent path" name="SettingsService Individual Setting Management should return undefined for non-existent path" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService Individual Setting Management should set setting by path" name="SettingsService Individual Setting Management should set setting by path" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService Individual Setting Management should set nested setting by path" name="SettingsService Individual Setting Management should set nested setting by path" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Change Listeners should add and notify change listeners" name="SettingsService Change Listeners should add and notify change listeners" time="0.011">
+    </testcase>
+    <testcase classname="SettingsService Change Listeners should remove change listeners" name="SettingsService Change Listeners should remove change listeners" time="0.008">
+    </testcase>
+    <testcase classname="SettingsService Change Listeners should handle listener errors gracefully" name="SettingsService Change Listeners should handle listener errors gracefully" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService LocalStorage Integration should save to localStorage on update" name="SettingsService LocalStorage Integration should save to localStorage on update" time="0.019">
+    </testcase>
+    <testcase classname="SettingsService LocalStorage Integration should load from localStorage on initialization" name="SettingsService LocalStorage Integration should load from localStorage on initialization" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService LocalStorage Integration should handle localStorage errors gracefully" name="SettingsService LocalStorage Integration should handle localStorage errors gracefully" time="0.005">
+    </testcase>
+    <testcase classname="SettingsService Singleton Instance should provide a singleton instance" name="SettingsService Singleton Instance should provide a singleton instance" time="0.006">
+    </testcase>
+    <testcase classname="SettingsService Settings Validation should validate session timeout range" name="SettingsService Settings Validation should validate session timeout range" time="0.007">
+    </testcase>
+    <testcase classname="SettingsService Settings Validation should validate temperature range" name="SettingsService Settings Validation should validate temperature range" time="0.009">
+    </testcase>
+    <testcase classname="SettingsService Settings Validation should validate settings structure" name="SettingsService Settings Validation should validate settings structure" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="TaskScheduler Architectural Fixes" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:31" time="0.848" tests="6">
+    <testcase classname="TaskScheduler Architectural Fixes should properly manage timer lifecycle when modal opens and closes" name="TaskScheduler Architectural Fixes should properly manage timer lifecycle when modal opens and closes" time="0.074">
+    </testcase>
+    <testcase classname="TaskScheduler Architectural Fixes should call loadTasks on mount when modal is open" name="TaskScheduler Architectural Fixes should call loadTasks on mount when modal is open" time="0.063">
+    </testcase>
+    <testcase classname="TaskScheduler Architectural Fixes should not call loadTasks when modal is closed" name="TaskScheduler Architectural Fixes should not call loadTasks when modal is closed" time="0.01">
+    </testcase>
+    <testcase classname="TaskScheduler Architectural Fixes should properly cleanup timers on component unmount" name="TaskScheduler Architectural Fixes should properly cleanup timers on component unmount" time="0.045">
+    </testcase>
+    <testcase classname="TaskScheduler Architectural Fixes should handle rapid open/close cycles without timer leaks" name="TaskScheduler Architectural Fixes should handle rapid open/close cycles without timer leaks" time="0.171">
+    </testcase>
+    <testcase classname="TaskScheduler Architectural Fixes should refresh tasks every 30 seconds when modal is open" name="TaskScheduler Architectural Fixes should refresh tasks every 30 seconds when modal is open" time="0.082">
+    </testcase>
+  </testsuite>
+  <testsuite name="Services Integration Tests" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:31" time="0.702" tests="12">
+    <testcase classname="Services Integration Tests Analytics and Task Scheduling Integration should record metrics when tasks are executed" name="Services Integration Tests Analytics and Task Scheduling Integration should record metrics when tasks are executed" time="0.018">
+    </testcase>
+    <testcase classname="Services Integration Tests Analytics and Task Scheduling Integration should track task performance in analytics dashboard" name="Services Integration Tests Analytics and Task Scheduling Integration should track task performance in analytics dashboard" time="0.009">
+    </testcase>
+    <testcase classname="Services Integration Tests UDC Management and Analytics Integration should track UDC usage in analytics" name="Services Integration Tests UDC Management and Analytics Integration should track UDC usage in analytics" time="0.017">
+    </testcase>
+    <testcase classname="Services Integration Tests UDC Management and Analytics Integration should include UDC validation metrics in performance analytics" name="Services Integration Tests UDC Management and Analytics Integration should include UDC validation metrics in performance analytics" time="0.015">
+    </testcase>
+    <testcase classname="Services Integration Tests Settings and Service Configuration Integration should apply settings changes to analytics service" name="Services Integration Tests Settings and Service Configuration Integration should apply settings changes to analytics service" time="0.008">
+    </testcase>
+    <testcase classname="Services Integration Tests Settings and Service Configuration Integration should apply cognitive settings to task execution" name="Services Integration Tests Settings and Service Configuration Integration should apply cognitive settings to task execution" time="0.017">
+    </testcase>
+    <testcase classname="Services Integration Tests Settings and Service Configuration Integration should apply security settings to UDC validation" name="Services Integration Tests Settings and Service Configuration Integration should apply security settings to UDC validation" time="0.007">
+    </testcase>
+    <testcase classname="Services Integration Tests Cross-Service Data Flow should maintain data consistency across services" name="Services Integration Tests Cross-Service Data Flow should maintain data consistency across services" time="0.01">
+    </testcase>
+    <testcase classname="Services Integration Tests Cross-Service Data Flow should handle service failures gracefully" name="Services Integration Tests Cross-Service Data Flow should handle service failures gracefully" time="0.005">
+    </testcase>
+    <testcase classname="Services Integration Tests Service Lifecycle Integration should handle service startup and shutdown correctly" name="Services Integration Tests Service Lifecycle Integration should handle service startup and shutdown correctly" time="0.008">
+    </testcase>
+    <testcase classname="Services Integration Tests Service Lifecycle Integration should maintain service state during configuration changes" name="Services Integration Tests Service Lifecycle Integration should maintain service state during configuration changes" time="0.012">
+    </testcase>
+    <testcase classname="Services Integration Tests Performance Integration should handle concurrent operations across services" name="Services Integration Tests Performance Integration should handle concurrent operations across services" time="0.019">
+    </testcase>
+  </testsuite>
+  <testsuite name="AnalyticsDashboard Simple Test" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:32" time="0.529" tests="3">
+    <testcase classname="AnalyticsDashboard Simple Test should import the component without errors" name="AnalyticsDashboard Simple Test should import the component without errors" time="0.005">
+    </testcase>
+    <testcase classname="AnalyticsDashboard Simple Test should render when isOpen is false (should not show content)" name="AnalyticsDashboard Simple Test should render when isOpen is false (should not show content)" time="0.036">
+    </testcase>
+    <testcase classname="AnalyticsDashboard Simple Test should render when isOpen is true" name="AnalyticsDashboard Simple Test should render when isOpen is true" time="0.07">
+    </testcase>
+  </testsuite>
+  <testsuite name="XionMetaAccount" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:33" time="0.691" tests="39">
+    <testcase classname="XionMetaAccount Initialization should initialize with test config" name="XionMetaAccount Initialization should initialize with test config" time="0.007">
+    </testcase>
+    <testcase classname="XionMetaAccount Initialization should initialize with new wallet" name="XionMetaAccount Initialization should initialize with new wallet" time="0.006">
+    </testcase>
+    <testcase classname="XionMetaAccount Initialization should initialize with existing mnemonic" name="XionMetaAccount Initialization should initialize with existing mnemonic" time="0.008">
+    </testcase>
+    <testcase classname="XionMetaAccount Initialization should throw error for invalid mnemonic" name="XionMetaAccount Initialization should throw error for invalid mnemonic" time="0.057">
+    </testcase>
+    <testcase classname="XionMetaAccount Initialization should handle initialization without mnemonic" name="XionMetaAccount Initialization should handle initialization without mnemonic" time="0.007">
+    </testcase>
+    <testcase classname="XionMetaAccount Balance Operations should get XION balance" name="XionMetaAccount Balance Operations should get XION balance" time="0.007">
+    </testcase>
+    <testcase classname="XionMetaAccount Balance Operations should get NRN balance" name="XionMetaAccount Balance Operations should get NRN balance" time="0.013">
+    </testcase>
+    <testcase classname="XionMetaAccount Balance Operations should refresh balances" name="XionMetaAccount Balance Operations should refresh balances" time="0.006">
+    </testcase>
+    <testcase classname="XionMetaAccount NRN Transfer Operations should transfer NRN successfully" name="XionMetaAccount NRN Transfer Operations should transfer NRN successfully" time="0.022">
+    </testcase>
+    <testcase classname="XionMetaAccount NRN Transfer Operations should throw error for invalid recipient address" name="XionMetaAccount NRN Transfer Operations should throw error for invalid recipient address" time="0.008">
+    </testcase>
+    <testcase classname="XionMetaAccount NRN Transfer Operations should throw error for invalid amount" name="XionMetaAccount NRN Transfer Operations should throw error for invalid amount" time="0.005">
+    </testcase>
+    <testcase classname="XionMetaAccount NRN Transfer Operations should handle zero amount transfer" name="XionMetaAccount NRN Transfer Operations should handle zero amount transfer" time="0.013">
+    </testcase>
+    <testcase classname="XionMetaAccount NRN Transfer Operations should handle negative amount transfer" name="XionMetaAccount NRN Transfer Operations should handle negative amount transfer" time="0.009">
+    </testcase>
+    <testcase classname="XionMetaAccount Skill Invocation Operations should burn NRN for skill successfully" name="XionMetaAccount Skill Invocation Operations should burn NRN for skill successfully" time="0.006">
+    </testcase>
+    <testcase classname="XionMetaAccount Skill Invocation Operations should throw error for empty skill ID" name="XionMetaAccount Skill Invocation Operations should throw error for empty skill ID" time="0.01">
+    </testcase>
+    <testcase classname="XionMetaAccount Skill Invocation Operations should throw error for invalid amount in skill invocation" name="XionMetaAccount Skill Invocation Operations should throw error for invalid amount in skill invocation" time="0.006">
+    </testcase>
+    <testcase classname="XionMetaAccount Skill Invocation Operations should handle skill invocation with metadata" name="XionMetaAccount Skill Invocation Operations should handle skill invocation with metadata" time="0.007">
+    </testcase>
+    <testcase classname="XionMetaAccount Faucet Operations should request NRN from faucet successfully" name="XionMetaAccount Faucet Operations should request NRN from faucet successfully" time="0.014">
+    </testcase>
+    <testcase classname="XionMetaAccount Faucet Operations should request default amount from faucet" name="XionMetaAccount Faucet Operations should request default amount from faucet" time="0.01">
+    </testcase>
+    <testcase classname="XionMetaAccount Faucet Operations should handle faucet request with invalid amount" name="XionMetaAccount Faucet Operations should handle faucet request with invalid amount" time="0.011">
+    </testcase>
+    <testcase classname="XionMetaAccount Faucet Operations should handle faucet request with zero amount" name="XionMetaAccount Faucet Operations should handle faucet request with zero amount" time="0.011">
+    </testcase>
+    <testcase classname="XionMetaAccount Gasless Transaction Support should enable gasless transactions" name="XionMetaAccount Gasless Transaction Support should enable gasless transactions" time="0.021">
+    </testcase>
+    <testcase classname="XionMetaAccount Gasless Transaction Support should check if gasless transactions are enabled" name="XionMetaAccount Gasless Transaction Support should check if gasless transactions are enabled" time="0.005">
+    </testcase>
+    <testcase classname="XionMetaAccount Error Handling should handle network connection errors gracefully" name="XionMetaAccount Error Handling should handle network connection errors gracefully" time="0.006">
+    </testcase>
+    <testcase classname="XionMetaAccount Error Handling should handle contract interaction errors" name="XionMetaAccount Error Handling should handle contract interaction errors" time="0.022">
+    </testcase>
+    <testcase classname="XionMetaAccount Error Handling should handle insufficient balance errors" name="XionMetaAccount Error Handling should handle insufficient balance errors" time="0.006">
+    </testcase>
+    <testcase classname="WalletManager Wallet Creation and Management should create new wallet" name="WalletManager Wallet Creation and Management should create new wallet" time="0.005">
+    </testcase>
+    <testcase classname="WalletManager Wallet Creation and Management should import wallet from mnemonic" name="WalletManager Wallet Creation and Management should import wallet from mnemonic" time="0.007">
+    </testcase>
+    <testcase classname="WalletManager Wallet Creation and Management should get existing wallet" name="WalletManager Wallet Creation and Management should get existing wallet" time="0.007">
+    </testcase>
+    <testcase classname="WalletManager Wallet Creation and Management should return undefined for non-existent wallet" name="WalletManager Wallet Creation and Management should return undefined for non-existent wallet" time="0.003">
+    </testcase>
+    <testcase classname="WalletManager Wallet Creation and Management should list all wallets" name="WalletManager Wallet Creation and Management should list all wallets" time="0.01">
+    </testcase>
+    <testcase classname="WalletManager Wallet Storage and Security should encrypt wallet data before storage" name="WalletManager Wallet Storage and Security should encrypt wallet data before storage" time="0.004">
+    </testcase>
+    <testcase classname="WalletManager Wallet Storage and Security should decrypt wallet data when loading" name="WalletManager Wallet Storage and Security should decrypt wallet data when loading" time="0.006">
+    </testcase>
+    <testcase classname="WalletManager Wallet Storage and Security should handle storage errors gracefully" name="WalletManager Wallet Storage and Security should handle storage errors gracefully" time="0.017">
+    </testcase>
+    <testcase classname="WalletManager Multiple Wallet Management should manage multiple wallets independently" name="WalletManager Multiple Wallet Management should manage multiple wallets independently" time="0.007">
+    </testcase>
+    <testcase classname="WalletManager Multiple Wallet Management should handle wallet name conflicts" name="WalletManager Multiple Wallet Management should handle wallet name conflicts" time="0.005">
+    </testcase>
+    <testcase classname="WalletManager Error Handling should handle invalid mnemonic during import" name="WalletManager Error Handling should handle invalid mnemonic during import" time="0.005">
+    </testcase>
+    <testcase classname="WalletManager Error Handling should handle empty wallet name" name="WalletManager Error Handling should handle empty wallet name" time="0.004">
+    </testcase>
+    <testcase classname="WalletManager Error Handling should handle storage unavailability" name="WalletManager Error Handling should handle storage unavailability" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="Linting Error Resolution Tests" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:33" time="0.591" tests="17">
+    <testcase classname="Linting Error Resolution Tests Parsing Error Fixes should handle arrow function syntax correctly in event handlers" name="Linting Error Resolution Tests Parsing Error Fixes should handle arrow function syntax correctly in event handlers" time="0.004">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Parsing Error Fixes should handle case statement blocks with proper braces" name="Linting Error Resolution Tests Parsing Error Fixes should handle case statement blocks with proper braces" time="0.004">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Parsing Error Fixes should handle recurring schedule case blocks correctly" name="Linting Error Resolution Tests Parsing Error Fixes should handle recurring schedule case blocks correctly" time="0.004">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Unused Variable Fixes should handle unused parameters with underscore prefix" name="Linting Error Resolution Tests Unused Variable Fixes should handle unused parameters with underscore prefix" time="0.003">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Unused Variable Fixes should handle catch blocks without unused error variables" name="Linting Error Resolution Tests Unused Variable Fixes should handle catch blocks without unused error variables" time="0.005">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Unused Variable Fixes should handle destructuring with unused variables" name="Linting Error Resolution Tests Unused Variable Fixes should handle destructuring with unused variables" time="0.005">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Import/Export Fixes should handle dynamic imports correctly" name="Linting Error Resolution Tests Import/Export Fixes should handle dynamic imports correctly" time="0.006">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Import/Export Fixes should handle proper export statements" name="Linting Error Resolution Tests Import/Export Fixes should handle proper export statements" time="0.005">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Type Safety Improvements should handle proper type annotations for event handlers" name="Linting Error Resolution Tests Type Safety Improvements should handle proper type annotations for event handlers" time="0.006">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Type Safety Improvements should handle proper parameter naming for unused args" name="Linting Error Resolution Tests Type Safety Improvements should handle proper parameter naming for unused args" time="0.004">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests String Literal and Syntax Fixes should handle properly terminated string literals" name="Linting Error Resolution Tests String Literal and Syntax Fixes should handle properly terminated string literals" time="0.003">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests String Literal and Syntax Fixes should handle proper function declarations and exports" name="Linting Error Resolution Tests String Literal and Syntax Fixes should handle proper function declarations and exports" time="0.009">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Service Integration Fixes should handle UDC signature generation with proper crypto imports" name="Linting Error Resolution Tests Service Integration Fixes should handle UDC signature generation with proper crypto imports" time="0.007">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Service Integration Fixes should handle task scheduling with proper case block syntax" name="Linting Error Resolution Tests Service Integration Fixes should handle task scheduling with proper case block syntax" time="0.004">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Error Reduction Metrics should verify significant error reduction was achieved" name="Linting Error Resolution Tests Error Reduction Metrics should verify significant error reduction was achieved" time="0.003">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Error Reduction Metrics should verify parsing errors were resolved" name="Linting Error Resolution Tests Error Reduction Metrics should verify parsing errors were resolved" time="0.005">
+    </testcase>
+    <testcase classname="Linting Error Resolution Tests Type Usage Validation should validate PaymentResult and ScheduledTask types are properly used" name="Linting Error Resolution Tests Type Usage Validation should validate PaymentResult and ScheduledTask types are properly used" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="MemoryManager" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:34" time="0.764" tests="35">
+    <testcase classname="MemoryManager Initialization should initialize with default configuration" name="MemoryManager Initialization should initialize with default configuration" time="0.007">
+    </testcase>
+    <testcase classname="MemoryManager Initialization should initialize with custom configuration" name="MemoryManager Initialization should initialize with custom configuration" time="0.005">
+    </testcase>
+    <testcase classname="MemoryManager Memory Metrics Collection should get current memory metrics" name="MemoryManager Memory Metrics Collection should get current memory metrics" time="0.01">
+    </testcase>
+    <testcase classname="MemoryManager Memory Metrics Collection should return null when memory API not available" name="MemoryManager Memory Metrics Collection should return null when memory API not available" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Metrics Collection should calculate usage percentage correctly" name="MemoryManager Memory Metrics Collection should calculate usage percentage correctly" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Monitoring should start monitoring" name="MemoryManager Memory Monitoring should start monitoring" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Monitoring should stop monitoring" name="MemoryManager Memory Monitoring should stop monitoring" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Monitoring should not start monitoring if already monitoring" name="MemoryManager Memory Monitoring should not start monitoring if already monitoring" time="0.03">
+    </testcase>
+    <testcase classname="MemoryManager Memory Monitoring should collect metrics at intervals" name="MemoryManager Memory Monitoring should collect metrics at intervals" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Cleanup should trigger cleanup manually" name="MemoryManager Memory Cleanup should trigger cleanup manually" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Memory Cleanup should execute cleanup callbacks" name="MemoryManager Memory Cleanup should execute cleanup callbacks" time="0.007">
+    </testcase>
+    <testcase classname="MemoryManager Memory Cleanup should handle cleanup callback errors" name="MemoryManager Memory Cleanup should handle cleanup callback errors" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Memory Cleanup should force garbage collection when available" name="MemoryManager Memory Cleanup should force garbage collection when available" time="0.007">
+    </testcase>
+    <testcase classname="MemoryManager Memory Cleanup should handle garbage collection errors" name="MemoryManager Memory Cleanup should handle garbage collection errors" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Cleanup Callback Management should register cleanup callbacks" name="MemoryManager Cleanup Callback Management should register cleanup callbacks" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Cleanup Callback Management should unregister cleanup callbacks" name="MemoryManager Cleanup Callback Management should unregister cleanup callbacks" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Memory Listeners should add memory listeners" name="MemoryManager Memory Listeners should add memory listeners" time="0.007">
+    </testcase>
+    <testcase classname="MemoryManager Memory Listeners should remove memory listeners" name="MemoryManager Memory Listeners should remove memory listeners" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Memory Listeners should handle listener errors gracefully" name="MemoryManager Memory Listeners should handle listener errors gracefully" time="0.015">
+    </testcase>
+    <testcase classname="MemoryManager Memory Usage Trends should detect increasing trend" name="MemoryManager Memory Usage Trends should detect increasing trend" time="0.008">
+    </testcase>
+    <testcase classname="MemoryManager Memory Usage Trends should detect decreasing trend" name="MemoryManager Memory Usage Trends should detect decreasing trend" time="0.011">
+    </testcase>
+    <testcase classname="MemoryManager Memory Usage Trends should detect stable trend" name="MemoryManager Memory Usage Trends should detect stable trend" time="0.012">
+    </testcase>
+    <testcase classname="MemoryManager Memory Usage Trends should handle insufficient data" name="MemoryManager Memory Usage Trends should handle insufficient data" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Leak Detection should detect potential memory leaks" name="MemoryManager Memory Leak Detection should detect potential memory leaks" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Leak Detection should not detect leaks with stable memory" name="MemoryManager Memory Leak Detection should not detect leaks with stable memory" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Leak Detection should handle insufficient data for leak detection" name="MemoryManager Memory Leak Detection should handle insufficient data for leak detection" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Reports should generate comprehensive memory report" name="MemoryManager Memory Reports should generate comprehensive memory report" time="0.01">
+    </testcase>
+    <testcase classname="MemoryManager Memory Reports should provide recommendations based on memory state" name="MemoryManager Memory Reports should provide recommendations based on memory state" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager Memory Reports should recommend monitoring for increasing trends" name="MemoryManager Memory Reports should recommend monitoring for increasing trends" time="0.01">
+    </testcase>
+    <testcase classname="MemoryManager History Management should get metrics history" name="MemoryManager History Management should get metrics history" time="0.017">
+    </testcase>
+    <testcase classname="MemoryManager History Management should clear metrics history" name="MemoryManager History Management should clear metrics history" time="0.009">
+    </testcase>
+    <testcase classname="MemoryManager History Management should limit history size" name="MemoryManager History Management should limit history size" time="0.013">
+    </testcase>
+    <testcase classname="MemoryManager Threshold Monitoring should trigger cleanup on critical threshold" name="MemoryManager Threshold Monitoring should trigger cleanup on critical threshold" time="0.021">
+    </testcase>
+    <testcase classname="MemoryManager Disposal should cleanup resources on disposal" name="MemoryManager Disposal should cleanup resources on disposal" time="0.018">
+    </testcase>
+    <testcase classname="MemoryManager Singleton Instance should provide a singleton instance" name="MemoryManager Singleton Instance should provide a singleton instance" time="0.012">
+    </testcase>
+  </testsuite>
+  <testsuite name="AgentManagementService" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:35" time="0.493" tests="14">
+    <testcase classname="AgentManagementService uploadAgent should upload a real WASM agent successfully" name="AgentManagementService uploadAgent should upload a real WASM agent successfully" time="0.04">
+    </testcase>
+    <testcase classname="AgentManagementService uploadAgent should upload a LoRA agent successfully" name="AgentManagementService uploadAgent should upload a LoRA agent successfully" time="0.006">
+    </testcase>
+    <testcase classname="AgentManagementService uploadAgent should calculate NRN cost based on requirements" name="AgentManagementService uploadAgent should calculate NRN cost based on requirements" time="0.006">
+    </testcase>
+    <testcase classname="AgentManagementService deployAgent should deploy an available agent successfully" name="AgentManagementService deployAgent should deploy an available agent successfully" time="0.008">
+    </testcase>
+    <testcase classname="AgentManagementService deployAgent should fail to deploy non-existent agent" name="AgentManagementService deployAgent should fail to deploy non-existent agent" time="0.044">
+    </testcase>
+    <testcase classname="AgentManagementService deployAgent should fail to deploy already deployed agent" name="AgentManagementService deployAgent should fail to deploy already deployed agent" time="0.006">
+    </testcase>
+    <testcase classname="AgentManagementService deployAgent should handle deployment API failure" name="AgentManagementService deployAgent should handle deployment API failure" time="0.008">
+    </testcase>
+    <testcase classname="AgentManagementService executeSkill should execute skill on deployed agent successfully" name="AgentManagementService executeSkill should execute skill on deployed agent successfully" time="0.04">
+    </testcase>
+    <testcase classname="AgentManagementService executeSkill should fail to execute skill on non-deployed agent" name="AgentManagementService executeSkill should fail to execute skill on non-deployed agent" time="0.008">
+    </testcase>
+    <testcase classname="AgentManagementService executeSkill should handle skill execution API failure" name="AgentManagementService executeSkill should handle skill execution API failure" time="0.009">
+    </testcase>
+    <testcase classname="AgentManagementService removeAgent should remove an available agent" name="AgentManagementService removeAgent should remove an available agent" time="0.008">
+    </testcase>
+    <testcase classname="AgentManagementService removeAgent should undeploy and remove a deployed agent" name="AgentManagementService removeAgent should undeploy and remove a deployed agent" time="0.009">
+    </testcase>
+    <testcase classname="AgentManagementService getters should return all agents" name="AgentManagementService getters should return all agents" time="0.009">
+    </testcase>
+    <testcase classname="AgentManagementService getters should return deployed agents only" name="AgentManagementService getters should return deployed agents only" time="0.008">
+    </testcase>
+  </testsuite>
+  <testsuite name="TerminalCommandService" errors="0" failures="0" skipped="0" timestamp="2025-09-16T16:25:35" time="0.556" tests="45">
+    <testcase classname="TerminalCommandService executeCommand should handle empty command" name="TerminalCommandService executeCommand should handle empty command" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService executeCommand should handle whitespace-only command" name="TerminalCommandService executeCommand should handle whitespace-only command" time="0.015">
+    </testcase>
+    <testcase classname="TerminalCommandService executeCommand should add command to history" name="TerminalCommandService executeCommand should add command to history" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService executeCommand should limit history to 100 commands" name="TerminalCommandService executeCommand should limit history to 100 commands" time="0.008">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands help command should display help information" name="TerminalCommandService built-in commands help command should display help information" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands echo command should echo arguments" name="TerminalCommandService built-in commands echo command should echo arguments" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands echo command should handle empty echo" name="TerminalCommandService built-in commands echo command should handle empty echo" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands pwd command should return current working directory" name="TerminalCommandService built-in commands pwd command should return current working directory" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands cd command should change to home directory with no arguments" name="TerminalCommandService built-in commands cd command should change to home directory with no arguments" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands cd command should change to absolute path" name="TerminalCommandService built-in commands cd command should change to absolute path" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands cd command should change to relative path" name="TerminalCommandService built-in commands cd command should change to relative path" time="0.013">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands ls command should list directory contents" name="TerminalCommandService built-in commands ls command should list directory contents" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands ls command should list specific directory" name="TerminalCommandService built-in commands ls command should list specific directory" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands clear command should return clear screen sequence" name="TerminalCommandService built-in commands clear command should return clear screen sequence" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands status command should show system status when API is available" name="TerminalCommandService built-in commands status command should show system status when API is available" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands status command should show fallback status when API is unavailable" name="TerminalCommandService built-in commands status command should show fallback status when API is unavailable" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands agents command should list available agents" name="TerminalCommandService built-in commands agents command should list available agents" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands agents command should deploy agent" name="TerminalCommandService built-in commands agents command should deploy agent" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands agents command should handle unknown subcommand" name="TerminalCommandService built-in commands agents command should handle unknown subcommand" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands skills command should list available skills" name="TerminalCommandService built-in commands skills command should list available skills" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands skills command should execute skills subcommand" name="TerminalCommandService built-in commands skills command should execute skills subcommand" time="0.008">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands wallet command should show wallet status" name="TerminalCommandService built-in commands wallet command should show wallet status" time="0.009">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands wallet command should execute wallet subcommand" name="TerminalCommandService built-in commands wallet command should execute wallet subcommand" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands cognitive command should show cognitive engine status" name="TerminalCommandService built-in commands cognitive command should show cognitive engine status" time="0.008">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands cognitive command should execute cognitive subcommand" name="TerminalCommandService built-in commands cognitive command should execute cognitive subcommand" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands deploy command should deploy with correct arguments" name="TerminalCommandService built-in commands deploy command should deploy with correct arguments" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands deploy command should fail with insufficient arguments" name="TerminalCommandService built-in commands deploy command should fail with insufficient arguments" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands invoke command should invoke skill with arguments" name="TerminalCommandService built-in commands invoke command should invoke skill with arguments" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands invoke command should fail with no skill specified" name="TerminalCommandService built-in commands invoke command should fail with no skill specified" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands config command should show configuration" name="TerminalCommandService built-in commands config command should show configuration" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands config command should execute config subcommand" name="TerminalCommandService built-in commands config command should execute config subcommand" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands logs command should show logs for all services" name="TerminalCommandService built-in commands logs command should show logs for all services" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands logs command should show logs for specific service" name="TerminalCommandService built-in commands logs command should show logs for specific service" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands system command should show system info" name="TerminalCommandService built-in commands system command should show system info" time="0.015">
+    </testcase>
+    <testcase classname="TerminalCommandService built-in commands system command should execute other system subcommands" name="TerminalCommandService built-in commands system command should execute other system subcommands" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService remote command execution should execute remote command successfully" name="TerminalCommandService remote command execution should execute remote command successfully" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService remote command execution should handle remote command failure" name="TerminalCommandService remote command execution should handle remote command failure" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService remote command execution should handle network error" name="TerminalCommandService remote command execution should handle network error" time="0.006">
+    </testcase>
+    <testcase classname="TerminalCommandService command parsing should parse simple command" name="TerminalCommandService command parsing should parse simple command" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService command parsing should parse command with multiple arguments" name="TerminalCommandService command parsing should parse command with multiple arguments" time="0.003">
+    </testcase>
+    <testcase classname="TerminalCommandService command parsing should handle extra whitespace" name="TerminalCommandService command parsing should handle extra whitespace" time="0.003">
+    </testcase>
+    <testcase classname="TerminalCommandService context management should return current context" name="TerminalCommandService context management should return current context" time="0.004">
+    </testcase>
+    <testcase classname="TerminalCommandService context management should update working directory" name="TerminalCommandService context management should update working directory" time="0.005">
+    </testcase>
+    <testcase classname="TerminalCommandService history management should clear history" name="TerminalCommandService history management should clear history" time="0.007">
+    </testcase>
+    <testcase classname="TerminalCommandService history management should return copy of history" name="TerminalCommandService history management should return copy of history" time="0.005">
+    </testcase>
+  </testsuite>
+</testsuites>
