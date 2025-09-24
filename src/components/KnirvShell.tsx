@@ -1,25 +1,15 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Cpu, Zap, AlertTriangle, FileText, Lightbulb, Plus, X, Camera } from 'lucide-react';
-import { SubmissionModal, SubmissionData, ErrorSubmissionData, ContextSubmissionData, IdeaSubmissionData } from './SubmissionModal';
-import { personalKNIRVGRAPHService } from '../services/PersonalKNIRVGRAPHService';
-import { ErrorNodeClustering } from '../core/knirvgraph/ErrorNodeClustering';
 
 interface KnirvShellProps {
   status: 'idle' | 'processing' | 'listening' | 'error';
   nrnBalance: number;
   onScreenshotCapture: () => void;
   cognitiveMode: boolean;
-  onSubmitError?: (data: ErrorSubmissionData) => Promise<void>;
-  onSubmitContext?: (data: ContextSubmissionData) => Promise<void>;
-  onSubmitIdea?: (data: IdeaSubmissionData) => Promise<void>;
-}
-
-interface AnimationState {
-  isAnimating: boolean;
-  type: 'error' | 'context' | 'idea' | null;
-  stage: 'submitting' | 'clustering' | 'minting' | 'complete';
-  progress: number;
+  onSubmitError?: () => void;
+  onSubmitContext?: () => void;
+  onSubmitIdea?: () => void;
 }
 
 export const KnirvShell: React.FC<KnirvShellProps> = ({
@@ -33,14 +23,6 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isExpanded, setIsExpanded] = useState(false);
-  const [modalType, setModalType] = useState<'error' | 'context' | 'idea' | null>(null);
-  const [animationState, setAnimationState] = useState<AnimationState>({
-    isAnimating: false,
-    type: null,
-    stage: 'submitting',
-    progress: 0
-  });
-  const [errorClustering] = useState(() => new ErrorNodeClustering());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -49,264 +31,6 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
 
     return () => clearInterval(timer);
   }, []);
-
-  // Initialize error clustering
-  useEffect(() => {
-    const initClustering = async () => {
-      try {
-        await errorClustering.initialize();
-      } catch (error) {
-        console.error('Failed to initialize error clustering:', error);
-      }
-    };
-    initClustering();
-  }, [errorClustering]);
-
-  // Enhanced submission handlers with animations
-  const handleSubmitError = async (data: ErrorSubmissionData) => {
-    setAnimationState({
-      isAnimating: true,
-      type: 'error',
-      stage: 'submitting',
-      progress: 0
-    });
-
-    try {
-      // Stage 1: Submit error
-      setAnimationState(prev => ({ ...prev, stage: 'submitting', progress: 25 }));
-
-      // Add error node to personal graph
-      const errorNode = await personalKNIRVGRAPHService.addErrorNode({
-        errorId: `error_${Date.now()}`,
-        errorType: data.errorType,
-        description: data.description,
-        context: {
-          title: data.title,
-          severity: data.severity,
-          stackTrace: data.stackTrace,
-          logs: data.logs,
-          steps: data.steps,
-          environment: data.environment
-        },
-        timestamp: Date.now()
-      });
-
-      // Stage 2: Clustering
-      setAnimationState(prev => ({ ...prev, stage: 'clustering', progress: 50 }));
-
-      // Add to error clustering system
-      await errorClustering.addErrorNode({
-        id: errorNode.id,
-        errorType: data.errorType,
-        errorMessage: data.description,
-        stackTrace: data.stackTrace || '',
-        context: {
-          title: data.title,
-          severity: data.severity,
-          environment: data.environment
-        },
-        severity: data.severity,
-        timestamp: new Date(),
-        bountyAmount: 0,
-        tags: [data.errorType],
-        metadata: {
-          originalSubmission: data
-        }
-      });
-
-      // Stage 3: Complete
-      setAnimationState(prev => ({ ...prev, stage: 'complete', progress: 100 }));
-
-      // Call original handler if provided
-      if (onSubmitError) {
-        await onSubmitError(data);
-      }
-
-      // Reset animation after delay
-      setTimeout(() => {
-        setAnimationState({
-          isAnimating: false,
-          type: null,
-          stage: 'submitting',
-          progress: 0
-        });
-      }, 2000);
-
-    } catch (error) {
-      console.error('Error submission failed:', error);
-      setAnimationState({
-        isAnimating: false,
-        type: null,
-        stage: 'submitting',
-        progress: 0
-      });
-      throw error;
-    }
-  };
-
-  const handleSubmitIdea = async (data: IdeaSubmissionData) => {
-    setAnimationState({
-      isAnimating: true,
-      type: 'idea',
-      stage: 'submitting',
-      progress: 0
-    });
-
-    try {
-      // Stage 1: Submit idea
-      setAnimationState(prev => ({ ...prev, stage: 'submitting', progress: 25 }));
-
-  // Add idea node to personal graph
-      await personalKNIRVGRAPHService.addIdeaNode({
-        ideaId: `idea_${Date.now()}`,
-        ideaName: data.title,
-        description: data.description,
-        timestamp: Date.now()
-      });
-
-      // Stage 2: Clustering (simulate idea clustering)
-      setAnimationState(prev => ({ ...prev, stage: 'clustering', progress: 50 }));
-
-      // Simulate clustering delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Stage 3: Complete
-      setAnimationState(prev => ({ ...prev, stage: 'complete', progress: 100 }));
-
-      // Call original handler if provided
-      if (onSubmitIdea) {
-        await onSubmitIdea(data);
-      }
-
-      // Reset animation after delay
-      setTimeout(() => {
-        setAnimationState({
-          isAnimating: false,
-          type: null,
-          stage: 'submitting',
-          progress: 0
-        });
-      }, 2000);
-
-    } catch (error) {
-      console.error('Idea submission failed:', error);
-      setAnimationState({
-        isAnimating: false,
-        type: null,
-        stage: 'submitting',
-        progress: 0
-      });
-      throw error;
-    }
-  };
-
-  const handleSubmitContext = async (data: ContextSubmissionData) => {
-    setAnimationState({
-      isAnimating: true,
-      type: 'context',
-      stage: 'submitting',
-      progress: 0
-    });
-
-    try {
-      // Stage 1: Submit context
-      setAnimationState(prev => ({ ...prev, stage: 'submitting', progress: 25 }));
-
-      // Add context node to personal graph
-      const contextNode = await personalKNIRVGRAPHService.addContextNode({
-        contextId: `context_${Date.now()}`,
-        contextName: data.title,
-        description: data.description,
-        mcpServerInfo: {
-          serverUrl: data.serverUrl || '',
-          mcpServerType: data.mcpServerType,
-          configuration: data.configuration,
-          capabilities: data.capabilities
-        },
-        category: data.category,
-        timestamp: Date.now()
-      });
-
-      // Stage 2: Capability Minting
-      setAnimationState(prev => ({ ...prev, stage: 'minting', progress: 50 }));
-
-      // Create capability from context submission
-      const capability = {
-        ID: `cap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        Name: data.title,
-        Description: data.description,
-        CapabilityType: data.capabilityType || data.mcpServerType,
-        MCPServerURL: data.serverUrl || '',
-        Schema: data.schema || '{}',
-        LocationHints: data.locationHints || [],
-        Metadata: {
-          gas_fee_nrn: data.gasFeeNRN || 0.1,
-          original_id: contextNode.id,
-          category: data.category,
-          mcpServerType: data.mcpServerType
-        },
-        CreatedAt: new Date(),
-        Status: 'active'
-      };
-
-      // Add capability to personal graph
-      await personalKNIRVGRAPHService.addCapabilityNode({
-        capabilityId: capability.ID,
-        name: capability.Name,
-        description: capability.Description,
-        capabilityType: capability.CapabilityType,
-        mcpServerUrl: capability.MCPServerURL,
-        schema: capability.Schema,
-        locationHints: capability.LocationHints,
-        gasFeeNRN: capability.Metadata.gas_fee_nrn,
-        status: capability.Status
-      });
-
-      // Stage 3: Complete
-      setAnimationState(prev => ({ ...prev, stage: 'complete', progress: 100 }));
-
-      // Call original handler if provided
-      if (onSubmitContext) {
-        await onSubmitContext(data);
-      }
-
-      // Reset animation after delay
-      setTimeout(() => {
-        setAnimationState({
-          isAnimating: false,
-          type: null,
-          stage: 'submitting',
-          progress: 0
-        });
-      }, 2000);
-
-    } catch (error) {
-      console.error('Context submission failed:', error);
-      setAnimationState({
-        isAnimating: false,
-        type: null,
-        stage: 'submitting',
-        progress: 0
-      });
-      throw error;
-    }
-  };
-
-  const handleModalSubmit = async (data: SubmissionData) => {
-    try {
-      if (modalType === 'error') {
-        await handleSubmitError(data as ErrorSubmissionData);
-      } else if (modalType === 'context') {
-        await handleSubmitContext(data as ContextSubmissionData);
-      } else if (modalType === 'idea') {
-        await handleSubmitIdea(data as IdeaSubmissionData);
-      }
-      setModalType(null);
-    } catch (error) {
-      console.error('Failed to submit:', error);
-      throw error; // Re-throw to let modal handle the error
-    }
-  };
 
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" data-testid="knirv-shell">
@@ -380,7 +104,7 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
                       {/* Submit Error */}
                       <button
                         onClick={() => {
-                          setModalType('error');
+                          onSubmitError?.();
                           setIsExpanded(false);
                         }}
                         className="group relative w-24 h-24 cursor-pointer transition-transform hover:scale-105"
@@ -399,7 +123,7 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
                       {/* Submit Context */}
                       <button
                         onClick={() => {
-                          setModalType('context');
+                          onSubmitContext?.();
                           setIsExpanded(false);
                         }}
                         className="group relative w-24 h-24 cursor-pointer transition-transform hover:scale-105"
@@ -418,7 +142,7 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
                       {/* Submit Idea */}
                       <button
                         onClick={() => {
-                          setModalType('idea');
+                          onSubmitIdea?.();
                           setIsExpanded(false);
                         }}
                         className="group relative w-24 h-24 cursor-pointer transition-transform hover:scale-105"
@@ -484,101 +208,6 @@ export const KnirvShell: React.FC<KnirvShellProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Animation Overlay */}
-      {animationState.isAnimating && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 max-w-md w-full mx-4">
-            <div className="text-center space-y-6">
-              {/* Animation Icon */}
-              <div className="relative w-24 h-24 mx-auto">
-                <div className={`absolute inset-0 rounded-full border-4 ${
-                  animationState.type === 'error' ? 'border-red-500/30' :
-                  animationState.type === 'context' ? 'border-blue-500/30' :
-                  'border-yellow-500/30'
-                }`}>
-                  <div className={`absolute inset-0 rounded-full border-4 border-transparent ${
-                    animationState.type === 'error' ? 'border-t-red-500' :
-                    animationState.type === 'context' ? 'border-t-blue-500' :
-                    'border-t-yellow-500'
-                  } animate-spin`}></div>
-                </div>
-                <div className={`absolute inset-4 rounded-full flex items-center justify-center ${
-                  animationState.type === 'error' ? 'bg-red-500/20' :
-                  animationState.type === 'context' ? 'bg-blue-500/20' :
-                  'bg-yellow-500/20'
-                }`}>
-                  {animationState.type === 'error' && <AlertTriangle className="w-8 h-8 text-red-400" />}
-                  {animationState.type === 'context' && <FileText className="w-8 h-8 text-blue-400" />}
-                  {animationState.type === 'idea' && <Lightbulb className="w-8 h-8 text-yellow-400" />}
-                </div>
-              </div>
-
-              {/* Progress Text */}
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold text-white">
-                  {animationState.stage === 'submitting' && 'Submitting to KNIRVGRAPH...'}
-                  {animationState.stage === 'clustering' && animationState.type === 'error' && 'Adding to Error Cluster...'}
-                  {animationState.stage === 'clustering' && animationState.type === 'idea' && 'Adding to Idea Cluster...'}
-                  {animationState.stage === 'minting' && 'Minting Capability...'}
-                  {animationState.stage === 'complete' && 'Complete!'}
-                </h3>
-                <p className="text-gray-400">
-                  {animationState.stage === 'submitting' && 'Processing your submission...'}
-                  {animationState.stage === 'clustering' && animationState.type === 'error' && 'Analyzing semantic similarity with existing errors...'}
-                  {animationState.stage === 'clustering' && animationState.type === 'idea' && 'Analyzing semantic similarity with existing ideas...'}
-                  {animationState.stage === 'minting' && 'Creating new capability from context schema...'}
-                  {animationState.stage === 'complete' && 'Successfully added to your personal KNIRVGRAPH!'}
-                </p>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    animationState.type === 'error' ? 'bg-red-500' :
-                    animationState.type === 'context' ? 'bg-blue-500' :
-                    'bg-yellow-500'
-                  }`}
-                  style={{ width: `${animationState.progress}%` }}
-                ></div>
-              </div>
-
-              {/* Stage Indicators */}
-              <div className="flex justify-center space-x-4">
-                <div className={`w-3 h-3 rounded-full ${
-                  animationState.progress >= 25 ?
-                    (animationState.type === 'error' ? 'bg-red-500' :
-                     animationState.type === 'context' ? 'bg-blue-500' :
-                     'bg-yellow-500') : 'bg-gray-600'
-                }`}></div>
-                <div className={`w-3 h-3 rounded-full ${
-                  animationState.progress >= 50 ?
-                    (animationState.type === 'error' ? 'bg-red-500' :
-                     animationState.type === 'context' ? 'bg-blue-500' :
-                     'bg-yellow-500') : 'bg-gray-600'
-                }`}></div>
-                <div className={`w-3 h-3 rounded-full ${
-                  animationState.progress >= 100 ?
-                    (animationState.type === 'error' ? 'bg-red-500' :
-                     animationState.type === 'context' ? 'bg-blue-500' :
-                     'bg-yellow-500') : 'bg-gray-600'
-                }`}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Submission Modal */}
-      {modalType && (
-        <SubmissionModal
-          isOpen={true}
-          type={modalType}
-          onClose={() => setModalType(null)}
-          onSubmit={handleModalSubmit}
-        />
-      )}
     </div>
   );
 };

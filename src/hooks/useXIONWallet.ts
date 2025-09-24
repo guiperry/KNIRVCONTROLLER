@@ -235,19 +235,18 @@ export function useXIONWallet(): XIONWalletState & XIONWalletActions {
       const result = await walletService.connectMetaAccount(authMethod, identifier);
       return {
         success: true,
-        account: (result as any).account || identifier,
-        error: undefined
+        account: typeof result === 'object' && result !== null && 'account' in result ? String(result.account) : undefined
       };
     } catch (error) {
       console.error('Failed to connect meta account:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect meta account';
       setState(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Failed to connect meta account',
+        error: errorMessage,
       }));
       return {
         success: false,
-        account: undefined,
-        error: error instanceof Error ? error.message : 'Failed to connect meta account'
+        error: errorMessage
       };
     }
   }, [walletService]);

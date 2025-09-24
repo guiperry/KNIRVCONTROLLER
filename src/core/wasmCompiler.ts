@@ -1,5 +1,7 @@
 // TypeScript Agent.wasm Compiler - Matches Rust cortex.wasm compiler exactly
 import { LoRAAdapterEngine, LoRAAdapterSkill } from './lora/LoRAAdapterEngine';
+import { WASMCompiler } from './wasm/WASMCompiler';
+import ProtobufHandler from './protobuf/ProtobufHandler';
 
 // ProtoBuf message interfaces (matching cortex.proto)
 export interface InferenceInput {
@@ -32,12 +34,18 @@ export interface Envelope {
 // WASM export interfaces
 export interface CortexWasmExports {
   memory: WebAssembly.Memory;
-  [key: string]: WebAssembly.ExportValue;
+  allocate_buffer?: (size: number) => number;
+  deallocate_buffer?: (ptr: number) => void;
+  load_lora_adapter?: (ptr: number, len: number) => number;
+  process_inference?: (ptr: number, len: number) => number;
+  get_result_ptr?: () => number;
+  get_result_len?: () => number;
+  run_cognitive_task?: (ptr: number, len: number) => number;
 }
 
 interface LoRASkillResult {
   success: boolean;
-  result?: Record<string, unknown>;
+  result?: LoRAAdapterSkill;
   error?: string;
   processingTime?: number;
 }
@@ -56,6 +64,7 @@ export interface AgentConfig {
   max_memory_mb: number;
   capabilities: string[];
   environment: Record<string, string>;
+  optimization_level?: string;
 }
 
 export interface AgentCompilationResponse {
@@ -86,10 +95,9 @@ export class TypeScriptAgentCompiler {
   private loraEngine: LoRAAdapterEngine;
 
   constructor() {
-    // Create mock dependencies for LoRAAdapterEngine
-    const mockWasmCompiler = {} as any;
-    const mockProtobufHandler = {} as any;
-    this.loraEngine = new LoRAAdapterEngine(mockWasmCompiler, mockProtobufHandler);
+    const wasmCompiler = new WASMCompiler();
+    const protobufHandler = new ProtobufHandler();
+    this.loraEngine = new LoRAAdapterEngine(wasmCompiler, protobufHandler);
     this.initialize();
   }
 
@@ -345,16 +353,42 @@ export { ${this.toPascalCase(request.agent_name)}CognitiveShell };
 
   // Invoke LoRA skill
   async invokeLoRASkill(skillId: string, parameters: Record<string, string>): Promise<LoRASkillResult> {
-    const result = await this.loraEngine.invokeAdapter(skillId, parameters);
+    const response = await this.loraEngine.invokeAdapter(skillId, parameters);
     return {
-      success: result.status === 'SUCCESS',
-      result: result.skill ? { skill: result.skill } : undefined
+      success: response.status === 'SUCCESS',
+      result: response.skill,
+      error: response.errorMessage,
+      processingTime: 0 // TODO: Add timing
     };
   }
 
   isAvailable(): boolean {
     return this.isInitialized;
   }
+
+  // Compatibility method for API
+  async compileRust(sourceCode: string): Promise<Uint8Array> {
+    const request: AgentCompilationRequest = {
+      agent_name: 'rust-agent',
+      agent_description: 'Compiled Rust agent',
+      cortex_wasm: new Uint8Array(),
+      adapters: [],
+      config: {
+        optimization_level: 'basic',
+        target_platform: 'typescript',
+        enable_lora: false,
+        max_memory_mb: 128,
+        capabilities: [],
+        environment: {}
+      }
+    };
+
+    // For now, just return a mock WASM module
+    // In a full implementation, this would compile the Rust source code
+    const mockWasm = new TextEncoder().encode(sourceCode);
+    return new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, ...mockWasm]);
+  }
 }
 
 export const typeScriptAgentCompiler = new TypeScriptAgentCompiler();
+export const wasmCompiler = typeScriptAgentCompiler;

@@ -58,56 +58,6 @@ function VisualProcessor({ onVisualData, onObjectDetection, isActive }: VisualPr
     // setCurrentFrame(null);
   }, [stream]);
 
-  // Object detection helper function
-  const performObjectDetection = useCallback((imageData: ImageData): SensoryDetectedObject[] => {
-    // Simplified object detection using basic computer vision techniques
-    const objects: SensoryDetectedObject[] = [];
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-
-    // Simple blob detection for demonstration
-    const threshold = 128;
-    const minBlobSize = 100;
-
-    // Convert to grayscale and find edges
-    const grayscale = new Uint8Array(width * height);
-    for (let i = 0; i < data.length; i += 4) {
-      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-      grayscale[i / 4] = gray;
-    }
-
-    // Simple edge detection (Sobel-like)
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        const idx = y * width + x;
-        const gx = grayscale[idx - 1] - grayscale[idx + 1];
-        const gy = grayscale[idx - width] - grayscale[idx + width];
-        const magnitude = Math.sqrt(gx * gx + gy * gy);
-
-        if (magnitude > threshold) {
-          // Found an edge, create a simple object
-          objects.push({
-            id: `obj_${x}_${y}`,
-            type: 'edge',
-            label: 'Detected Edge',
-            confidence: Math.min(magnitude / 255, 1),
-            boundingBox: {
-              x: x - 10,
-              y: y - 10,
-              width: 20,
-              height: 20,
-              normalized: false
-            },
-            features: [magnitude, x, y]
-          });
-        }
-      }
-    }
-
-    return objects.slice(0, 10); // Limit to 10 objects
-  }, []);
-
   const detectObjects = useCallback((imageData: ImageData): SensoryDetectedObject[] => {
     // Simple object detection using edge detection and blob analysis
     const { data, width, height } = imageData;
@@ -115,15 +65,32 @@ function VisualProcessor({ onVisualData, onObjectDetection, isActive }: VisualPr
 
     // Convert to grayscale and apply edge detection
     for (let i = 0; i < data.length; i += 4) {
-      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
       binary[i / 4] = gray > 128 ? 255 : 0;
     }
 
-    // Find connected components (blobs)
-    const objects = performObjectDetection(imageData);
+    // Simple blob detection (mock implementation)
+    const objects: SensoryDetectedObject[] = [];
+
+    // Mock object detection - in real implementation, this would use computer vision algorithms
+    if (Math.random() > 0.7) { // Randomly detect objects
+      objects.push({
+        id: `obj_${Date.now()}`,
+        type: 'person',
+        label: 'person',
+        confidence: 0.85,
+        boundingBox: {
+          x: Math.random() * (width - 100),
+          y: Math.random() * (height - 100),
+          width: 100,
+          height: 150
+        },
+        features: [0.1, 0.2, 0.3, 0.4, 0.5]
+      });
+    }
 
     return objects;
-  }, [performObjectDetection]);
+  }, []);
 
   const processVideoFrame = useCallback(() => {
     if (!videoRef.current || !canvasRef.current || !isProcessing) return;
@@ -207,8 +174,6 @@ function VisualProcessor({ onVisualData, onObjectDetection, isActive }: VisualPr
       setError('Failed to access camera. Please check permissions.');
     }
   }, [processVideoFrame]);
-
-
 
   useEffect(() => {
     if (isActive) {
@@ -339,7 +304,54 @@ function VisualProcessor({ onVisualData, onObjectDetection, isActive }: VisualPr
     }
   }; */
 
+  const performObjectDetection = useCallback((imageData: ImageData): SensoryDetectedObject[] => {
+    // Simplified object detection using basic computer vision techniques
+    const objects: SensoryDetectedObject[] = [];
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
 
+    // Simple blob detection for demonstration
+    const threshold = 128;
+    const minBlobSize = 100;
+    
+    // Convert to binary image
+    const binary = new Uint8Array(width * height);
+    for (let i = 0; i < data.length; i += 4) {
+      const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      binary[i / 4] = gray > threshold ? 255 : 0;
+    }
+
+    // Find connected components (simplified)
+    const visited = new Set<number>();
+    let objectId = 0;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const index = y * width + x;
+        
+        if (binary[index] === 255 && !visited.has(index)) {
+          const blob = floodFill(binary, width, height, x, y, visited);
+          
+          if (blob.length > minBlobSize) {
+            const boundingBox = calculateBoundingBox(blob, width);
+            const features = extractFeatures(blob, boundingBox);
+            
+            objects.push({
+              id: `obj_${objectId++}`,
+              type: classifyObject(features),
+              label: classifyObject(features),
+              confidence: Math.random() * 0.5 + 0.5, // Mock confidence
+              boundingBox,
+              features
+            });
+          }
+        }
+      }
+    }
+
+    return objects.slice(0, 10); // Limit to 10 objects
+  }, []);
 
   const floodFill = (binary: Uint8Array, width: number, height: number, startX: number, startY: number, visited: Set<number>): number[] => {
     const stack = [{ x: startX, y: startY }];

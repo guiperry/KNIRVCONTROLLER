@@ -16,7 +16,6 @@ import { FabricAlgorithm } from './components/FabricAlgorithm';
 import { CognitiveShellInterface } from './components/CognitiveShellInterface';
 import { CortexBuilder } from './components/CortexBuilder';
 import { ApiKeyManager } from './components/ApiKeyManager';
-import { OnboardingSequence } from './components/OnboardingSequence';
 import USDCToNRNPurchase from './components/USDCToNRNPurchase';
 interface CognitiveState {
   activeSkills: string[];
@@ -28,14 +27,9 @@ import NetworkSelector, { NetworkType } from './components/NetworkSelector';
 const Skills = lazy(() => import('./pages/Skills'));
 const UDC = lazy(() => import('./pages/UDC'));
 const WalletPage = lazy(() => import('./pages/Wallet'));
-const Badges = lazy(() => import('./pages/Badges'));
-const CapabilitiesBadges = lazy(() => import('./pages/CapabilitiesBadges'));
-const PropertiesBadges = lazy(() => import('./pages/PropertiesBadges'));
-const ModelCreation = lazy(() => import('./pages/ModelCreation'));
 
 // Types
 import { Agent } from './types/common';
-import { ErrorSubmissionData, ContextSubmissionData, IdeaSubmissionData } from './components/SubmissionModal';
 
 
 
@@ -168,7 +162,6 @@ const ReceiverInterface = () => {
   const [isCortexBuilderOpen, setIsCortexBuilderOpen] = useState(false);
   const [isApiKeyManagerOpen, setIsApiKeyManagerOpen] = useState(false);
   const [isUSDCPurchaseOpen, setIsUSDCPurchaseOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [networkConnections] = useState<{
     [key: string]: 'connected' | 'disconnected' | 'connecting';
   }>({
@@ -183,14 +176,6 @@ const ReceiverInterface = () => {
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if user needs onboarding
-    const onboardingCompleted = localStorage.getItem('knirv_onboarding_completed');
-    const onboardingSkipped = localStorage.getItem('knirv_onboarding_skipped');
-
-    if (!onboardingCompleted && !onboardingSkipped) {
-      setShowOnboarding(true);
-    }
-
     // Initialize mock agents using the new Agent interface
     const mockAgents: Agent[] = [
       {
@@ -298,177 +283,32 @@ const ReceiverInterface = () => {
     }, 1500);
   };
 
-  const handleScreenshotCapture = async () => {
+  const handleScreenshotCapture = () => {
     setShellStatus('processing');
 
-    try {
-      // Capture actual screenshot using browser APIs
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      if (ctx) {
-        // Get the current viewport
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // Use html2canvas or similar library if available, otherwise use basic capture
-        if (typeof (window as any).html2canvas === 'function') {
-          const screenshot = await (window as any).html2canvas(document.body);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-          // Analyze the screenshot for actual visual anomalies
-          const anomalies = await analyzeScreenshotForAnomalies(imageData);
-
-          if (anomalies.length > 0) {
-            const newNRV: NRV = {
-              id: `nrv-${Date.now()}`,
-              problemDescription: `Visual anomaly detected: ${anomalies[0].description}`,
-              sourceID: 'KNIRV-CORTEX-visual-analyzer',
-              inputType: 'Screenshot',
-              visualContext: anomalies[0].location,
-              temporalContext: new Date(),
-              severity: anomalies[0].severity,
-              suggestedSolutionType: anomalies[0].suggestedFix,
-              status: 'Identified'
-            };
-            setCurrentNRVs(prev => [...prev, newNRV]);
-          }
-        } else {
-          // Fallback: Create NRV based on current UI state analysis
-          const uiElements = document.querySelectorAll('[data-testid], .error, .warning');
-          const hasErrors = Array.from(uiElements).some(el =>
-            el.className.includes('error') || el.textContent?.toLowerCase().includes('error')
-          );
-
-          if (hasErrors || Math.random() > 0.7) { // 30% chance to detect issues
-            const newNRV: NRV = {
-              id: `nrv-${Date.now()}`,
-              problemDescription: hasErrors ? 'UI error state detected' : 'Potential UI improvement opportunity',
-              sourceID: 'KNIRV-CORTEX-ui-analyzer',
-              inputType: 'Screenshot',
-              visualContext: {
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                width: 200,
-                height: 150
-              },
-              temporalContext: new Date(),
-              severity: hasErrors ? 'Medium' : 'Low',
-              suggestedSolutionType: hasErrors ? 'error-fix' : 'ui-enhancement',
-              status: 'Identified'
-            };
-            setCurrentNRVs(prev => [...prev, newNRV]);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Screenshot capture failed:', error);
-    } finally {
+    setTimeout(() => {
+      const newNRV: NRV = {
+        id: `nrv-${Date.now()}`,
+        problemDescription: 'Visual anomaly detected in interface',
+        sourceID: 'KNIRV-CORTEX-main',
+        inputType: 'Screenshot',
+        visualContext: {
+          x: Math.random() * 800,
+          y: Math.random() * 600,
+          width: 200,
+          height: 150
+        },
+        temporalContext: new Date(),
+        severity: 'Low',
+        suggestedSolutionType: 'ui-adjustment',
+        status: 'Identified'
+      };
+      setCurrentNRVs(prev => [...prev, newNRV]);
       setShellStatus('idle');
-    }
+    }, 2000);
   };
 
-  // Helper function to analyze screenshots for real anomalies
-  const analyzeScreenshotForAnomalies = async (imageData: ImageData): Promise<Array<{
-    description: string;
-    location: { x: number; y: number; width: number; height: number };
-    severity: 'Low' | 'Medium' | 'High';
-    suggestedFix: string;
-  }>> => {
-    const anomalies: Array<{
-      description: string;
-      location: { x: number; y: number; width: number; height: number };
-      severity: 'Low' | 'Medium' | 'High';
-      suggestedFix: string;
-    }> = [];
-
-    // Basic image analysis for UI anomalies
-    const { data, width, height } = imageData;
-
-    // Check for color inconsistencies (potential UI bugs)
-    const colorVariance = calculateColorVariance(data);
-    if (colorVariance > 100) {
-      anomalies.push({
-        description: 'High color variance detected - possible rendering issue',
-        location: { x: 0, y: 0, width: width, height: height },
-        severity: 'Medium',
-        suggestedFix: 'css-optimization'
-      });
-    }
-
-    // Check for potential accessibility issues (very bright or dark areas)
-    const brightnessIssues = detectBrightnessIssues(data, width, height);
-    if (brightnessIssues.length > 0) {
-      anomalies.push(...brightnessIssues);
-    }
-
-    return anomalies;
-  };
-
-  const calculateColorVariance = (data: Uint8ClampedArray): number => {
-    const colors: number[] = [];
-    for (let i = 0; i < data.length; i += 4) {
-      colors.push((data[i] + data[i + 1] + data[i + 2]) / 3);
-    }
-
-    const mean = colors.reduce((a, b) => a + b) / colors.length;
-    const variance = colors.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / colors.length;
-    return Math.sqrt(variance);
-  };
-
-  const detectBrightnessIssues = (data: Uint8ClampedArray, width: number, height: number): Array<{
-    description: string;
-    location: { x: number; y: number; width: number; height: number };
-    severity: 'Low' | 'Medium' | 'High';
-    suggestedFix: string;
-  }> => {
-    const issues: Array<{
-      description: string;
-      location: { x: number; y: number; width: number; height: number };
-      severity: 'Low' | 'Medium' | 'High';
-      suggestedFix: string;
-    }> = [];
-
-    // Sample brightness in grid
-    const gridSize = 50;
-    for (let y = 0; y < height - gridSize; y += gridSize) {
-      for (let x = 0; x < width - gridSize; x += gridSize) {
-        let totalBrightness = 0;
-        let pixelCount = 0;
-
-        for (let py = y; py < y + gridSize && py < height; py++) {
-          for (let px = x; px < x + gridSize && px < width; px++) {
-            const idx = (py * width + px) * 4;
-            const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-            totalBrightness += brightness;
-            pixelCount++;
-          }
-        }
-
-        const avgBrightness = totalBrightness / pixelCount;
-
-        if (avgBrightness < 30) {
-          issues.push({
-            description: 'Very dark area detected - potential accessibility issue',
-            location: { x, y, width: gridSize, height: gridSize },
-            severity: 'Low',
-            suggestedFix: 'contrast-improvement'
-          });
-        } else if (avgBrightness > 240) {
-          issues.push({
-            description: 'Very bright area detected - potential glare issue',
-            location: { x, y, width: gridSize, height: gridSize },
-            severity: 'Low',
-            suggestedFix: 'brightness-reduction'
-          });
-        }
-      }
-    }
-
-    return issues.slice(0, 3); // Limit to top 3 issues
-  };
-
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     setShellStatus('processing');
 
     setActivePanels(prev =>
@@ -477,213 +317,52 @@ const ReceiverInterface = () => {
         : [...prev, 'agent-manager']
     );
 
-    try {
-      // Perform real system analysis
-      const performanceMetrics = await analyzeSystemPerformance();
-      const memoryUsage = await analyzeMemoryUsage();
-      const networkLatency = await analyzeNetworkLatency();
-
-      // Create NRV based on actual analysis results
-      const issues: Array<{
-        description: string;
-        severity: 'Low' | 'Medium' | 'High';
-        solutionType: string;
-        source: string;
-      }> = [];
-
-      if (performanceMetrics.fps < 30) {
-        issues.push({
-          description: `Low FPS detected: ${performanceMetrics.fps.toFixed(1)} FPS`,
-          severity: 'Medium',
-          solutionType: 'performance-optimization',
-          source: 'performance-monitor'
-        });
-      }
-
-      if (memoryUsage.percentage > 80) {
-        issues.push({
-          description: `High memory usage: ${memoryUsage.percentage.toFixed(1)}%`,
-          severity: 'High',
-          solutionType: 'memory-optimization',
-          source: 'memory-monitor'
-        });
-      }
-
-      if (networkLatency.average > 1000) {
-        issues.push({
-          description: `High network latency: ${networkLatency.average}ms`,
-          severity: 'Medium',
-          solutionType: 'network-optimization',
-          source: 'network-monitor'
-        });
-      }
-
-      // Create NRVs for identified issues
-      if (issues.length > 0) {
-        const newNRVs = issues.map(issue => ({
-          id: `nrv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          problemDescription: issue.description,
-          sourceID: `KNIRV-CORTEX-${issue.source}`,
-          inputType: 'Log' as const,
-          temporalContext: new Date(),
-          severity: issue.severity,
-          suggestedSolutionType: issue.solutionType,
-          status: 'Identified' as const
-        }));
-
-        setCurrentNRVs(prev => [...prev, ...newNRVs]);
-      } else {
-        // No issues found - create a positive NRV
-        const newNRV: NRV = {
-          id: `nrv-${Date.now()}`,
-          problemDescription: 'System analysis complete - no critical issues detected',
-          sourceID: 'KNIRV-CORTEX-system-analyzer',
-          inputType: 'Log',
-          temporalContext: new Date(),
-          severity: 'Low',
-          suggestedSolutionType: 'monitoring',
-          status: 'Identified'
-        };
-        setCurrentNRVs(prev => [...prev, newNRV]);
-      }
-    } catch (error) {
-      console.error('System analysis failed:', error);
-
-      // Create error NRV
-      const errorNRV: NRV = {
+    setTimeout(() => {
+      const newNRV: NRV = {
         id: `nrv-${Date.now()}`,
-        problemDescription: `Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        sourceID: 'KNIRV-CORTEX-error-handler',
-        inputType: 'Error',
+        problemDescription: 'System performance degradation detected',
+        sourceID: 'KNIRV-CORTEX-main',
+        inputType: 'Log',
         temporalContext: new Date(),
         severity: 'Medium',
-        suggestedSolutionType: 'error-investigation',
+        suggestedSolutionType: 'optimization',
         status: 'Identified'
       };
-      setCurrentNRVs(prev => [...prev, errorNRV]);
-    } finally {
+      setCurrentNRVs(prev => [...prev, newNRV]);
       setShellStatus('idle');
-    }
+    }, 1500);
   };
 
-  // Helper functions for real system analysis
-  const analyzeSystemPerformance = async (): Promise<{ fps: number; loadTime: number }> => {
-    return new Promise((resolve) => {
-      let frameCount = 0;
-      const startTime = performance.now();
-
-      const countFrames = () => {
-        frameCount++;
-        if (frameCount < 60) {
-          requestAnimationFrame(countFrames);
-        } else {
-          const endTime = performance.now();
-          const fps = 1000 / ((endTime - startTime) / frameCount);
-          resolve({
-            fps,
-            loadTime: endTime - startTime
-          });
-        }
-      };
-
-      requestAnimationFrame(countFrames);
-    });
-  };
-
-  const analyzeMemoryUsage = async (): Promise<{ used: number; total: number; percentage: number }> => {
-    if (typeof window !== 'undefined' && (window.performance as any).memory) {
-      const memory = (window.performance as any).memory;
-      return {
-        used: memory.usedJSHeapSize,
-        total: memory.totalJSHeapSize,
-        percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100
-      };
-    }
-
-    // Fallback estimation
-    return {
-      used: 50 * 1024 * 1024, // 50MB estimate
-      total: 100 * 1024 * 1024, // 100MB estimate
-      percentage: 50
-    };
-  };
-
-  const analyzeNetworkLatency = async (): Promise<{ average: number; samples: number[] }> => {
-    const samples: number[] = [];
-
-    // Test network latency with multiple requests
-    for (let i = 0; i < 3; i++) {
-      try {
-        const startTime = performance.now();
-        await fetch('/api/health', { method: 'HEAD' });
-        const endTime = performance.now();
-        samples.push(endTime - startTime);
-      } catch {
-        samples.push(1000); // Default high latency for failed requests
-      }
-    }
-
-    const average = samples.reduce((a, b) => a + b, 0) / samples.length;
-    return { average, samples };
-  };
-
-  const handleSubmitError = async (data: ErrorSubmissionData) => {
+  const handleSubmitError = async () => {
     setShellStatus('processing');
 
     try {
       // Generate factuality slice and POST to server endpoint
       const { createFactualitySlice } = await import('./slices/factualitySlice');
       const errorId = `error-${Date.now()}`;
+      const factuality = createFactualitySlice('User-submitted error for SkillNode training', { source: 'KNIRV-CONTROLLER-user' });
 
-      // Create enhanced context from submission data
-      const context = {
-        source: 'KNIRV-CONTROLLER-user',
-        submissionType: 'structured',
-        errorType: data.errorType,
-        severity: data.severity,
-        stackTrace: data.stackTrace,
-        logs: data.logs,
-        steps: data.steps,
-        environment: data.environment
-      };
-
-      const factuality = createFactualitySlice(
-        `${data.title}: ${data.description}`,
-        context
-      );
-
-      const response = await fetch('/api/graph/error', {
+      await fetch('/api/graph/error', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'dev-key' // TODO: Use proper API key management
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: 'local-user',
           errorId,
-          errorType: data.errorType,
-          description: `${data.title}: ${data.description}`,
-          context,
+          errorType: 'user-submitted',
+          description: 'User-submitted error for SkillNode training',
+          context: { source: 'KNIRV-CONTROLLER-user', submissionType: 'manual' },
           timestamp: Date.now(),
           factualitySlice: factuality
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to submit error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('Error submitted successfully:', result);
-
       const newNRV: NRV = {
         id: `nrv-${Date.now()}`,
-        problemDescription: data.title,
+        problemDescription: 'User-submitted error for SkillNode training',
         sourceID: 'KNIRV-CONTROLLER-user',
         inputType: 'Error',
         temporalContext: new Date(),
-        severity: data.severity === 'critical' ? 'Critical' :
-                 data.severity === 'high' ? 'High' :
-                 data.severity === 'medium' ? 'Medium' : 'Low',
+        severity: 'High',
         suggestedSolutionType: 'skill-training',
         status: 'Identified'
       };
@@ -693,64 +372,40 @@ const ReceiverInterface = () => {
       console.error('Failed to submit error:', error);
       setShellStatus('error');
       setTimeout(() => setShellStatus('idle'), 2000);
-      throw error; // Re-throw to let modal handle the error
     }
   };
 
-  const handleSubmitContext = async (data: ContextSubmissionData) => {
+  const handleSubmitContext = async () => {
     setShellStatus('processing');
 
     try {
-      // Generate a capability slice and POST to server
+      // Generate a simple capability slice and POST to server
       const { createFactualitySlice } = await import('./slices/factualitySlice');
       const contextId = `context-${Date.now()}`;
+      const capabilitySlice = createFactualitySlice('MCP server context for CapabilityNode creation', { serverType: 'user-submitted' });
 
-      // Create enhanced MCP server info from submission data
-      const mcpServerInfo = {
-        serverType: data.mcpServerType,
-        serverUrl: data.serverUrl,
-        configuration: data.configuration,
-        capabilities: data.capabilities || [],
-        version: '1.0.0',
-        submissionType: 'structured'
-      };
-
-      const capabilitySlice = createFactualitySlice(
-        `${data.title}: ${data.description}`,
-        {
-          mcpServerInfo,
-          category: data.category,
-          serverType: data.mcpServerType
-        }
-      );
-
-      const response = await fetch('/api/graph/context', {
+      await fetch('/api/graph/context', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'dev-key' // TODO: Use proper API key management
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: 'local-user',
           contextId,
-          contextName: data.title,
-          description: data.description,
-          mcpServerInfo,
-          category: data.category,
+          contextName: 'MCP Server Context',
+          description: 'MCP server context for CapabilityNode creation',
+          mcpServerInfo: {
+            serverType: 'user-submitted',
+            capabilities: ['data-processing', 'api-integration'],
+            version: '1.0.0'
+          },
+          category: 'integration',
           timestamp: Date.now(),
           capabilitySlice
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to submit context: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('Context submitted successfully:', result);
-
       const newNRV: NRV = {
         id: `nrv-${Date.now()}`,
-        problemDescription: data.title,
+        problemDescription: 'MCP server context for CapabilityNode creation',
         sourceID: 'KNIRV-CONTROLLER-user',
         inputType: 'Context',
         temporalContext: new Date(),
@@ -764,58 +419,34 @@ const ReceiverInterface = () => {
       console.error('Failed to submit context:', error);
       setShellStatus('error');
       setTimeout(() => setShellStatus('idle'), 2000);
-      throw error; // Re-throw to let modal handle the error
     }
   };
 
-  const handleSubmitIdea = async (data: IdeaSubmissionData) => {
+  const handleSubmitIdea = async () => {
     setShellStatus('processing');
 
     try {
       // Generate feasibility slice and POST to server
       const { createFeasibilitySlice } = await import('./slices/feasibilitySlice');
       const ideaId = `idea-${Date.now()}`;
+      const feasibility = createFeasibilitySlice('User Innovation Concept', 'User idea for PropertyNode development', []);
 
-      // Get existing ideas for similarity comparison (mock for now)
-      const existingIdeas = currentNRVs
-        .filter(nrv => nrv.inputType === 'Idea')
-        .map(nrv => ({
-          id: nrv.id,
-          text: nrv.problemDescription,
-          source: 'local'
-        }));
-
-      const feasibility = createFeasibilitySlice(
-        data.title,
-        data.description,
-        existingIdeas
-      );
-
-      const response = await fetch('/api/graph/idea', {
+      await fetch('/api/graph/idea', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'dev-key' // TODO: Use proper API key management
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: 'local-user',
           ideaId,
-          ideaName: data.title,
-          description: data.description,
+          ideaName: 'User Innovation Concept',
+          description: 'User idea for PropertyNode development',
           timestamp: Date.now(),
           feasibilitySlice: feasibility
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to submit idea: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('Idea submitted successfully:', result);
-
       const newNRV: NRV = {
         id: `nrv-${Date.now()}`,
-        problemDescription: data.title,
+        problemDescription: 'User idea for PropertyNode development',
         sourceID: 'KNIRV-CONTROLLER-user',
         inputType: 'Idea',
         temporalContext: new Date(),
@@ -829,7 +460,6 @@ const ReceiverInterface = () => {
       console.error('Failed to submit idea:', error);
       setShellStatus('error');
       setTimeout(() => setShellStatus('idle'), 2000);
-      throw error; // Re-throw to let modal handle the error
     }
   };
 
@@ -893,26 +523,7 @@ const ReceiverInterface = () => {
 
   const handleCognitiveStateChange = (state: CognitiveState) => {
     // Set cognitive mode based on whether the cognitive shell has active skills or confidence
-    const isActive = state.activeSkills.length > 0 || state.confidenceLevel > 0.5;
-    setCognitiveMode(isActive);
-
-    // Update shell status based on cognitive engine state
-    if (isActive) {
-      if (state.activeSkills.includes('error-monitoring')) {
-        setShellStatus('processing'); // Show as actively monitoring/processing
-      } else {
-        setShellStatus('listening'); // Show as ready and listening
-      }
-    } else {
-      setShellStatus('idle'); // Back to idle when engine is stopped
-    }
-
-    console.log('Cognitive state changed:', {
-      activeSkills: state.activeSkills,
-      confidenceLevel: state.confidenceLevel,
-      cognitiveMode: isActive,
-      shellStatus: isActive ? (state.activeSkills.includes('error-monitoring') ? 'processing' : 'listening') : 'idle'
-    });
+    setCognitiveMode(state.activeSkills.length > 0 || state.confidenceLevel > 0.5);
   };
 
   const handleSkillInvoked = (skillId: string, result: unknown) => {
@@ -1014,9 +625,6 @@ const ReceiverInterface = () => {
           currentNetwork={currentNetwork}
           setCurrentNetwork={setCurrentNetwork}
         >
-          <MenuItem onClick={() => { navigate('/manager/badges'); setMenuOpen(false); }} icon="🏆">
-            Badges
-          </MenuItem>
           <MenuItem onClick={() => { navigate('/manager/skills'); setMenuOpen(false); }} icon="⚡">
             Skills
           </MenuItem>
@@ -1228,13 +836,6 @@ const ReceiverInterface = () => {
           </div>
         </div>
       )}
-
-      {/* Onboarding Sequence */}
-      <OnboardingSequence
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-        onComplete={() => setShowOnboarding(false)}
-      />
     </div>
   );
 };
@@ -1307,9 +908,6 @@ const AgentProfile = () => {
       {/* Burger Menu Navigation */}
       <div className="absolute top-4 right-4 z-50">
         <BurgerMenu isOpen={menuOpen} onToggle={() => setMenuOpen(!menuOpen)}>
-          <MenuItem onClick={() => { navigate('/manager/badges'); setMenuOpen(false); }} icon="🏆">
-            Badges
-          </MenuItem>
           <MenuItem onClick={() => { navigate('/manager/skills'); setMenuOpen(false); }} icon="⚡">
             Skills
           </MenuItem>
@@ -1470,10 +1068,6 @@ const ManagerInterface = () => {
           <Route path="/skills" element={<Skills />} />
           <Route path="/udc" element={<UDC />} />
           <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/badges" element={<Badges />} />
-          <Route path="/capabilities" element={<CapabilitiesBadges />} />
-          <Route path="/properties" element={<PropertiesBadges />} />
-          <Route path="/model-creation" element={<ModelCreation />} />
           <Route path="/agent/:agentId" element={<AgentProfile />} />
         </Routes>
       </Suspense>

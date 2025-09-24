@@ -536,168 +536,33 @@ export class VisualProcessor extends EventEmitter {
     }
   }
 
-  private async simulateObjectDetection(imageData: ImageData): Promise<DetectedObject[]> {
-    try {
-      // Try to use real computer vision if available
-      if (typeof window !== 'undefined' && (window as any).cv) {
-        return await this.performOpenCVDetection(imageData);
-      }
+  private async simulateObjectDetection(_imageData: ImageData): Promise<DetectedObject[]> {
+    // Simulate object detection processing
+    await new Promise(resolve => setTimeout(resolve, 50));
 
-      // Try MediaPipe if available
-      if (typeof window !== 'undefined' && (window as any).mediaPipe) {
-        return await this.performMediaPipeDetection(imageData);
-      }
-
-      // Fallback to basic image analysis
-      return await this.performBasicImageAnalysis(imageData);
-    } catch (error) {
-      console.error('Object detection failed:', error);
-      return [];
-    }
-  }
-
-  private async performOpenCVDetection(imageData: ImageData): Promise<DetectedObject[]> {
-    // Real OpenCV.js implementation would go here
-    console.log('OpenCV detection not yet implemented');
-    return [];
-  }
-
-  private async performMediaPipeDetection(imageData: ImageData): Promise<DetectedObject[]> {
-    // Real MediaPipe implementation would go here
-    console.log('MediaPipe detection not yet implemented');
-    return [];
-  }
-
-  private async performBasicImageAnalysis(imageData: ImageData): Promise<DetectedObject[]> {
-    // Basic image analysis using canvas pixel data
-    const { data, width, height } = imageData;
-    const objects: DetectedObject[] = [];
-
-    // Analyze image for basic patterns
-    const brightness = this.calculateAverageBrightness(data);
-    const colorVariance = this.calculateColorVariance(data);
-    const edgeCount = this.detectEdges(data, width, height);
-
-    // Detect potential objects based on image characteristics
-    if (brightness > 100 && colorVariance > 50 && edgeCount > 1000) {
-      // Likely contains objects
-      const regions = this.findInterestingRegions(data, width, height);
-
-      regions.forEach((region, index) => {
-        objects.push({
-          id: `detected_${Date.now()}_${index}`,
-          label: this.classifyRegion(region),
-          confidence: Math.min(0.9, region.confidence),
-          boundingBox: region.boundingBox,
+    // Generate mock objects occasionally
+    if (Math.random() < 0.1) { // 10% chance to detect objects
+      const objects: DetectedObject[] = [
+        {
+          id: `obj_${Date.now()}`,
+          label: 'person',
+          confidence: 0.85,
+          boundingBox: {
+            x: Math.random() * 800,
+            y: Math.random() * 600,
+            width: 100 + Math.random() * 200,
+            height: 150 + Math.random() * 300,
+          },
           timestamp: new Date(),
-          features: region.features,
-          category: 'unknown',
-        });
-      });
+          features: [0.1, 0.2, 0.3, 0.4, 0.5],
+          category: 'human',
+        },
+      ];
+
+      return objects;
     }
 
-    return objects;
-  }
-
-  private calculateAverageBrightness(data: Uint8ClampedArray): number {
-    let total = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      total += (data[i] + data[i + 1] + data[i + 2]) / 3;
-    }
-    return total / (data.length / 4);
-  }
-
-  private calculateColorVariance(data: Uint8ClampedArray): number {
-    const colors: number[] = [];
-    for (let i = 0; i < data.length; i += 4) {
-      colors.push((data[i] + data[i + 1] + data[i + 2]) / 3);
-    }
-
-    const mean = colors.reduce((a, b) => a + b) / colors.length;
-    const variance = colors.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / colors.length;
-    return Math.sqrt(variance);
-  }
-
-  private detectEdges(data: Uint8ClampedArray, width: number, height: number): number {
-    let edgeCount = 0;
-    const threshold = 30;
-
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        const idx = (y * width + x) * 4;
-        const current = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-
-        const right = ((data[idx + 4] + data[idx + 5] + data[idx + 6]) / 3);
-        const bottom = ((data[idx + width * 4] + data[idx + width * 4 + 1] + data[idx + width * 4 + 2]) / 3);
-
-        if (Math.abs(current - right) > threshold || Math.abs(current - bottom) > threshold) {
-          edgeCount++;
-        }
-      }
-    }
-
-    return edgeCount;
-  }
-
-  private findInterestingRegions(data: Uint8ClampedArray, width: number, height: number): Array<{
-    boundingBox: { x: number; y: number; width: number; height: number };
-    confidence: number;
-    features: number[];
-  }> {
-    // Simple region detection based on color clustering
-    const regions: Array<{
-      boundingBox: { x: number; y: number; width: number; height: number };
-      confidence: number;
-      features: number[];
-    }> = [];
-
-    // Divide image into grid and analyze each cell
-    const cellSize = 50;
-    for (let y = 0; y < height - cellSize; y += cellSize) {
-      for (let x = 0; x < width - cellSize; x += cellSize) {
-        const cellData = this.extractCellData(data, x, y, cellSize, width);
-        const variance = this.calculateColorVariance(cellData);
-
-        if (variance > 40) { // Interesting region threshold
-          regions.push({
-            boundingBox: { x, y, width: cellSize, height: cellSize },
-            confidence: Math.min(variance / 100, 0.8),
-            features: [variance, cellData.length, x / width, y / height]
-          });
-        }
-      }
-    }
-
-    return regions.slice(0, 5); // Limit to top 5 regions
-  }
-
-  private extractCellData(data: Uint8ClampedArray, x: number, y: number, size: number, width: number): Uint8ClampedArray {
-    const cellData = new Uint8ClampedArray(size * size * 4);
-    let cellIndex = 0;
-
-    for (let cy = y; cy < y + size; cy++) {
-      for (let cx = x; cx < x + size; cx++) {
-        const sourceIndex = (cy * width + cx) * 4;
-        cellData[cellIndex++] = data[sourceIndex];
-        cellData[cellIndex++] = data[sourceIndex + 1];
-        cellData[cellIndex++] = data[sourceIndex + 2];
-        cellData[cellIndex++] = data[sourceIndex + 3];
-      }
-    }
-
-    return cellData;
-  }
-
-  private classifyRegion(region: { features: number[] }): string {
-    // Basic classification based on features
-    const [variance, size, xPos, yPos] = region.features;
-
-    if (variance > 60 && size > 2000) return 'complex_object';
-    if (variance > 40 && xPos > 0.3 && xPos < 0.7) return 'central_object';
-    if (yPos > 0.7) return 'ground_object';
-    if (yPos < 0.3) return 'sky_object';
-
-    return 'unknown_object';
+    return [];
   }
 
   private async simulateGestureRecognition(_imageData: ImageData): Promise<GestureEvent[]> {

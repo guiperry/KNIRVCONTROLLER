@@ -113,22 +113,26 @@ export class AssemblyScriptWASMLoader {
         },
 
         // Math functions (if needed)
-        Math: {
-          random: Math.random,
-          floor: Math.floor,
-          ceil: Math.ceil,
-          round: Math.round,
-          abs: Math.abs,
-          min: Math.min,
-          max: Math.max,
-          pow: Math.pow,
-          sqrt: Math.sqrt
-        } as unknown as WebAssembly.ImportValue,
-        Date: {
-          now: Date.now
-        } as unknown as WebAssembly.ImportValue,
+        ...(typeof Math !== 'undefined' && {
+          Math: {
+            random: Math.random,
+            floor: Math.floor,
+            ceil: Math.ceil,
+            round: Math.round,
+            abs: Math.abs,
+            min: Math.min,
+            max: Math.max,
+            pow: Math.pow,
+            sqrt: Math.sqrt
+          }
+        }),
+        ...(typeof Date !== 'undefined' && {
+          Date: {
+            now: (() => Date.now()) as any
+          }
+        }),
       }
-    };
+    } as any;
   }
 
   // Agent Core Methods

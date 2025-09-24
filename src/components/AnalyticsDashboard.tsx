@@ -147,28 +147,28 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isOpen, onClose
                 <MetricCard
                   title="Active Agents"
                   value={dashboardStats.activeAgents}
-                  change={dashboardStats.changes.active_agents?.toString()}
+                  change={dashboardStats.changes.active_agents}
                   icon={Users}
                   color="blue"
                 />
                 <MetricCard
                   title="Target Systems"
                   value={dashboardStats.targetSystems}
-                  change={dashboardStats.changes.target_systems?.toString()}
+                  change={dashboardStats.changes.target_systems}
                   icon={Target}
                   color="green"
                 />
                 <MetricCard
                   title="Inferences Today"
                   value={dashboardStats.inferencesToday}
-                  change={dashboardStats.changes.inferences_today?.toString()}
+                  change={dashboardStats.changes.inferences_today}
                   icon={Activity}
                   color="purple"
                 />
                 <MetricCard
                   title="Success Rate"
                   value={`${dashboardStats.successRate}%`}
-                  change={dashboardStats.changes.success_rate?.toString()}
+                  change={dashboardStats.changes.success_rate}
                   icon={CheckCircle}
                   color="emerald"
                 />

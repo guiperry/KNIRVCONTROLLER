@@ -484,34 +484,10 @@ export const CognitiveShellInterface: React.FC<CognitiveShellInterfaceProps> = (
   const handleStart = async () => {
     if (cognitiveEngine && !isRunning) {
       try {
-        console.log('Starting Cognitive Engine...');
         await cognitiveEngine.start();
-        setIsRunning(true);
-
-        // Update engine state to reflect running status
-        const currentState = cognitiveEngine.getState();
-        setEngineState({
-          ...currentState,
-          activeSkills: ['error-monitoring', 'context-analysis'],
-          confidenceLevel: 0.8,
-          adaptationLevel: 0.3
-        });
-
-        // Notify parent component of state change
-        if (onStateChange) {
-          onStateChange({
-            ...currentState,
-            activeSkills: ['error-monitoring', 'context-analysis'],
-            confidenceLevel: 0.8,
-            adaptationLevel: 0.3
-          });
-        }
-
         loadEngineMetrics(); // Call loadEngineMetrics on start
-        console.log('Cognitive Engine started successfully');
       } catch (error) {
         console.error('Failed to start Cognitive Engine:', error);
-        setIsRunning(false);
       }
     }
   };
@@ -519,30 +495,10 @@ export const CognitiveShellInterface: React.FC<CognitiveShellInterfaceProps> = (
   const handleStop = async () => {
     if (cognitiveEngine && isRunning) {
       try {
-        console.log('Stopping Cognitive Engine...');
         await cognitiveEngine.stop();
-        setIsRunning(false);
-
-        // Update engine state to reflect stopped status
-        const stoppedState = {
-          currentContext: new Map(),
-          activeSkills: [],
-          learningHistory: engineState?.learningHistory || [],
-          confidenceLevel: 0.5,
-          adaptationLevel: 0.0
-        };
-        setEngineState(stoppedState);
-
-        // Notify parent component of state change
-        if (onStateChange) {
-          onStateChange(stoppedState);
-        }
-
         loadEngineMetrics(); // Call loadEngineMetrics on stop
-        console.log('Cognitive Engine stopped successfully');
       } catch (error) {
         console.error('Failed to stop Cognitive Engine:', error);
-        setIsRunning(true); // Revert state if stop failed
       }
     }
   };
@@ -563,8 +519,6 @@ export const CognitiveShellInterface: React.FC<CognitiveShellInterfaceProps> = (
   const getStatusText = () => {
     if (!isRunning) return 'Offline';
     if (learningMode) return 'Learning';
-    if (engineState?.activeSkills.includes('error-monitoring')) return 'Monitoring';
-    if (engineState?.activeSkills.length > 0) return 'Processing';
     return 'Active';
   };
 
@@ -579,12 +533,7 @@ export const CognitiveShellInterface: React.FC<CognitiveShellInterfaceProps> = (
           <div>
             <h3 className="text-lg font-semibold text-white">Cognitive Shell</h3>
             <p className={`text-sm ${getStatusColor()}`}>
-              Status: {getStatusText()}
-              {isRunning && engineState && (
-                <span className="ml-1">
-                  ({engineState.activeSkills.length} skills, {Math.round(engineState.confidenceLevel * 100)}% confidence)
-                </span>
-              )}
+              Status: {getStatusText()} {isRunning && `(${engineState?.confidenceLevel ? 'Active' : 'Initializing'})`}
             </p>
           </div>
         </div>

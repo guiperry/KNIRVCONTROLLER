@@ -5,7 +5,6 @@
  */
 
 import { AbstraxionWalletService, XIONAccount, ConversionRequest } from './AbstraxionWalletService';
-import { secureKeyStoreService } from './SecureKeyStoreService';
 
 export interface XionMetaAccountConfig {
   rpcEndpoint: string;
@@ -24,13 +23,6 @@ export class XionMetaAccount {
     this.walletService = new AbstraxionWalletService();
   }
 
-  // Factory helper to create from environment variables
-  static fromEnv(): XionMetaAccount {
-    const rpc = process.env.KNIRVCHAIN_API || 'http://localhost:26657';
-    const chainId = process.env.KNIRV_CHAIN_ID || 'knirv-testnet-1';
-    return new XionMetaAccount({ rpcEndpoint: rpc, chainId });
-  }
-
   /**
    * Initialize the meta account with optional mnemonic
    */
@@ -43,18 +35,8 @@ export class XionMetaAccount {
         }
         this.mnemonic = mnemonic;
       } else {
-        // Attempt to load mnemonic from secure keystore for default user
-        try {
-          const stored = await secureKeyStoreService.getMnemonic('default');
-          if (stored) {
-            this.mnemonic = stored;
-          } else {
-            // Generate new mnemonic
-            this.mnemonic = this.generateMnemonic();
-          }
-        } catch {
-          this.mnemonic = this.generateMnemonic();
-        }
+        // Generate new mnemonic
+        this.mnemonic = this.generateMnemonic();
       }
 
       // Connect wallet using the service
@@ -70,12 +52,6 @@ export class XionMetaAccount {
       console.error('Failed to initialize XionMetaAccount:', error);
       throw error;
     }
-  }
-
-  // Store current mnemonic into secure keystore for user
-  async storeMnemonicForUser(userId: string): Promise<void> {
-    if (!this.mnemonic) throw new Error('No mnemonic available to store');
-    await secureKeyStoreService.storeMnemonic(userId, this.mnemonic);
   }
 
   /**

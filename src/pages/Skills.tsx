@@ -1,4 +1,4 @@
-import { Search, Zap, Download, Activity, Award, Database, Settings } from 'lucide-react';
+import { Search, Zap, Shield, Wallet, Download, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import SkillCard from '../components/SkillCard';
@@ -379,16 +379,11 @@ export default function Skills() {
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center py-4">
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-                Skills Badges
-              </h1>
-            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+              Skills
+            </h1>
             <p className="text-gray-400 text-sm">
-              Earned through error resolution and problem-solving achievements
+              Manage and configure your AI agent capabilities
             </p>
           </div>
 
@@ -521,29 +516,29 @@ export default function Skills() {
           <button
             onClick={() => navigate('/manager/skills')}
             className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-              window.location.pathname === '/manager/skills' ? 'text-red-400 bg-red-600/20' : 'text-gray-400 hover:text-white'
+              window.location.pathname === '/manager/skills' ? 'text-blue-400 bg-blue-600/20' : 'text-gray-400 hover:text-white'
             }`}
           >
             <Zap className="w-5 h-5 mb-1" />
             <span className="text-xs">Skills</span>
           </button>
           <button
-            onClick={() => navigate('/manager/capabilities')}
+            onClick={() => navigate('/manager/udc')}
             className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-              window.location.pathname === '/manager/capabilities' ? 'text-blue-400 bg-blue-600/20' : 'text-gray-400 hover:text-white'
+              window.location.pathname === '/manager/udc' ? 'text-blue-400 bg-blue-600/20' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Database className="w-5 h-5 mb-1" />
-            <span className="text-xs">Capabilities</span>
+            <Shield className="w-5 h-5 mb-1" />
+            <span className="text-xs">UDC</span>
           </button>
           <button
-            onClick={() => navigate('/manager/properties')}
+            onClick={() => navigate('/manager/wallet')}
             className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors ${
-              window.location.pathname === '/manager/properties' ? 'text-yellow-400 bg-yellow-600/20' : 'text-gray-400 hover:text-white'
+              window.location.pathname === '/manager/wallet' ? 'text-blue-400 bg-blue-600/20' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Settings className="w-5 h-5 mb-1" />
-            <span className="text-xs">Properties</span>
+            <Wallet className="w-5 h-5 mb-1" />
+            <span className="text-xs">Wallet</span>
           </button>
         </div>
       </nav>

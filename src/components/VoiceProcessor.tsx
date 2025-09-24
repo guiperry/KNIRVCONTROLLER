@@ -58,34 +58,43 @@ export default function VoiceProcessor({ onVoiceCommand, onAudioData, isActive }
   const [error, setError] = useState<string | null>(null);
   const [lastCommand, setLastCommand] = useState<string>('');
   const [transcript, setTranscript] = useState<string>('');
-  const [audioMetrics, setAudioMetrics] = useState({
-    volume: 0,
-    frequency: 0,
-    lastUpdate: new Date()
-  });
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
 
-  // Voice command processing
   const processVoiceCommand = useCallback((transcript: string, _confidence: number) => {
     const command = transcript.toLowerCase().trim();
 
     // Basic command processing
-    if (command.includes('start') || command.includes('begin')) {
-      console.log('Start command detected');
-    } else if (command.includes('stop') || command.includes('end')) {
-      console.log('Stop command detected');
+    if (command.includes('scan qr') || command.includes('scan code')) {
+      console.log('QR scan command detected');
+    } else if (command.includes('connect') || command.includes('link')) {
+      console.log('Connection command detected');
     } else if (command.includes('wallet') || command.includes('transaction')) {
       console.log('Wallet command detected');
     }
   }, []);
 
-  // Initialize voice recognition
+  const stopVoiceRecognition = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  }, []);
+
+  const stopAudioAnalysis = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsRecording(false);
+    setAudioLevel(0);
+  }, []);
+
   const initializeVoiceRecognition = useCallback(() => {
     if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
       setError('Speech recognition not supported in this browser');
@@ -98,7 +107,6 @@ export default function VoiceProcessor({ onVoiceCommand, onAudioData, isActive }
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-    recognition.maxAlternatives = 3;
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -143,7 +151,6 @@ export default function VoiceProcessor({ onVoiceCommand, onAudioData, isActive }
     recognition.start();
   }, [isActive, onVoiceCommand, processVoiceCommand]);
 
-  // Initialize audio analysis
   const initializeAudioAnalysis = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -155,91 +162,56 @@ export default function VoiceProcessor({ onVoiceCommand, onAudioData, isActive }
       });
 
       streamRef.current = stream;
-
-      const audioContext = new (window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
-      const analyser = audioContext.createAnalyser();
-      const microphone = audioContext.createMediaStreamSource(stream);
-
-      analyser.fftSize = 256;
-      microphone.connect(analyser);
-
-      analyserRef.current = analyser;
-      audioContextRef.current = audioContext;
-      microphoneRef.current = microphone;
-
+      setIsRecording(true);
       setError(null);
-    } catch (error) {
-      console.error('Failed to initialize audio analysis:', error);
-      setError('Failed to access microphone. Please check permissions.');
-    }
-  }, []);
 
-  // Start audio level monitoring
-  const startAudioLevelMonitoring = useCallback(() => {
-    const updateAudioLevel = () => {
-      if (analyserRef.current) {
-        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-        analyserRef.current.getByteFrequencyData(dataArray);
+      // Create audio context for analysis
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
 
-        const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+      source.connect(analyser);
+      analyser.fftSize = 256;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      const floatArray = new Float32Array(bufferLength);
+
+      const updateAudioLevel = () => {
+        if (!isActive || !streamRef.current) return;
+
+        analyser.getByteFrequencyData(dataArray);
+        analyser.getFloatFrequencyData(floatArray);
+
+        // Calculate average volume
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
         const normalizedLevel = average / 255;
 
         setAudioLevel(normalizedLevel);
 
-        // Update audio metrics
-        setAudioMetrics(prev => ({
-          ...prev,
-          volume: normalizedLevel,
-          frequency: dataArray[Math.floor(dataArray.length / 2)],
-          lastUpdate: new Date()
-        }));
-      }
+        // Send audio data to parent
+        onAudioData(floatArray);
 
-      if (isActive) {
-        animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
-      }
-    };
+        if (isActive) {
+          requestAnimationFrame(updateAudioLevel);
+        }
+      };
 
-    updateAudioLevel();
-  }, [isActive]);
-
-  // Stop voice recognition
-  const stopVoiceRecognition = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
+      updateAudioLevel();
+    } catch (error) {
+      console.error('Failed to initialize audio analysis:', error);
+      setError('Failed to access microphone. Please check permissions.');
     }
-    setIsListening(false);
-    setTranscript('');
-  }, []);
-
-  // Stop audio analysis
-  const stopAudioAnalysis = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
-    analyserRef.current = null;
-    microphoneRef.current = null;
-    setAudioLevel(0);
-  }, []);
+  }, [isActive, onAudioData]);
 
   useEffect(() => {
     if (isActive) {
       initializeVoiceRecognition();
       initializeAudioAnalysis();
-      startAudioLevelMonitoring();
     } else {
       stopVoiceRecognition();
       stopAudioAnalysis();
@@ -249,7 +221,38 @@ export default function VoiceProcessor({ onVoiceCommand, onAudioData, isActive }
       stopVoiceRecognition();
       stopAudioAnalysis();
     };
-  }, [isActive, initializeAudioAnalysis, initializeVoiceRecognition, stopAudioAnalysis, stopVoiceRecognition, startAudioLevelMonitoring]);
+  }, [isActive, initializeAudioAnalysis, initializeVoiceRecognition, stopAudioAnalysis, stopVoiceRecognition]);
+
+  const startAudioLevelMonitoring = useCallback(() => {
+    if (!analyserRef.current) return;
+
+    const analyser = analyserRef.current;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const floatArray = new Float32Array(bufferLength);
+
+    const updateAudioLevel = () => {
+      if (!analyserRef.current || !isActive) return;
+
+      analyser.getByteFrequencyData(dataArray);
+      analyser.getFloatFrequencyData(floatArray);
+
+      // Calculate audio level
+      const sum = dataArray.reduce((a: number, b: number) => a + b, 0);
+      const average = sum / bufferLength;
+      const level = average / 255;
+
+      setAudioLevel(level);
+
+      // Send audio data for processing
+      onAudioData(floatArray);
+
+      requestAnimationFrame(updateAudioLevel);
+    };
+
+    updateAudioLevel();
+  }, [isActive, onAudioData]);
+
 
 
   const toggleVoiceRecognition = () => {

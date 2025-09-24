@@ -5,55 +5,13 @@
 
 import express from 'express';
 import cors from 'cors';
-import { WebSocketServer, WebSocket as WsWebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import { apiKeyService, ApiKey } from '../services/ApiKeyService';
 
 const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
-
-// WebSocket connection management
-const connectedClients = new Set<WsWebSocket>();
-
-wss.on('connection', (ws: WsWebSocket) => {
-  console.log('New WebSocket connection established');
-  connectedClients.add(ws);
-
-  // Send initial state
-  ws.send(JSON.stringify({
-    type: 'cognitive_state',
-    data: cognitiveState
-  }));
-
-  ws.on('close', () => {
-    console.log('WebSocket connection closed');
-    connectedClients.delete(ws);
-  });
-
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-    connectedClients.delete(ws);
-  });
-});
-
-// Broadcast function for real-time updates
-function broadcastToClients(type: string, data: unknown) {
-  const message = JSON.stringify({ type, data, timestamp: Date.now() });
-
-  connectedClients.forEach((client) => {
-    if (client.readyState === client.OPEN) {
-      try {
-        client.send(message);
-      } catch (error) {
-        console.error('Failed to send WebSocket message:', error);
-        connectedClients.delete(client);
-      }
-    } else {
-      connectedClients.delete(client);
-    }
-  });
-}
 
 // Middleware
 app.use(cors());
@@ -168,163 +126,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Initialize services
-agentRuntimeService.initialize().catch(console.error);
-knirvChainService.initialize().catch(console.error);
-
-// Agent Runtime Endpoints
-app.post('/api/runtime/skills/execute', requirePermission('execute:skills'), async (req, res) => {
-  try {
-    const request: SkillExecutionRequest = req.body;
-
-    if (!request.skillId || !request.agentId) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['skillId', 'agentId']
-      });
-    }
-
-    const result = await agentRuntimeService.executeSkill(request);
-
-    // Broadcast execution result
-    broadcastToClients('skill_execution', {
-      skillId: request.skillId,
-      agentId: request.agentId,
-      success: result.success,
-      executionTime: result.executionTime,
-      nrnCost: result.billingInfo.nrnCost,
-      timestamp: Date.now()
-    });
-
-    res.json(result);
-  } catch (error) {
-    console.error('Skill execution failed:', error);
-    res.status(500).json({
-      error: 'Skill execution failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-app.get('/api/runtime/stats', requirePermission('read:runtime'), (req, res) => {
-  try {
-    const stats = agentRuntimeService.getStats();
-    res.json(stats);
-  } catch (error) {
-    console.error('Failed to get runtime stats:', error);
-    res.status(500).json({ error: 'Failed to get runtime stats' });
-  }
-});
-
-// KNIRVCHAIN Integration Endpoints
-app.get('/api/chain/status', requirePermission('read:chain'), async (req, res) => {
-  try {
-    const status = await knirvChainService.getChainStatus();
-    res.json(status);
-  } catch (error) {
-    console.error('Failed to get chain status:', error);
-    res.status(500).json({ error: 'Failed to get chain status' });
-  }
-});
-
-app.get('/api/chain/wallet', requirePermission('read:wallet'), async (req, res) => {
-  try {
-    const walletInfo = await knirvChainService.getWalletInfo();
-    res.json(walletInfo);
-  } catch (error) {
-    console.error('Failed to get wallet info:', error);
-    res.status(500).json({ error: 'Failed to get wallet info' });
-  }
-});
-
-app.post('/api/chain/send', requirePermission('write:wallet'), async (req, res) => {
-  try {
-    const { toAddress, amount, memo } = req.body;
-
-    if (!toAddress || !amount) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['toAddress', 'amount']
-      });
-    }
-
-    const transaction = await knirvChainService.sendNrn(toAddress, amount, memo);
-
-    if (transaction) {
-      // Broadcast transaction
-      broadcastToClients('nrn_transaction', {
-        txHash: transaction.txHash,
-        from: transaction.from,
-        to: transaction.to,
-        amount: transaction.amount,
-        status: transaction.status
-      });
-    }
-
-    res.json(transaction);
-  } catch (error) {
-    console.error('Failed to send NRN:', error);
-    res.status(500).json({ error: 'Failed to send NRN' });
-  }
-});
-
-app.post('/api/chain/agents/register', requirePermission('write:agents'), async (req, res) => {
-  try {
-    const registration = req.body;
-
-    if (!registration.agentId || !registration.ownerAddress) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['agentId', 'ownerAddress']
-      });
-    }
-
-    const txHash = await knirvChainService.registerAgent(registration);
-
-    if (txHash) {
-      // Broadcast agent registration
-      broadcastToClients('agent_registered', {
-        agentId: registration.agentId,
-        txHash,
-        timestamp: Date.now()
-      });
-    }
-
-    res.json({ success: !!txHash, txHash });
-  } catch (error) {
-    console.error('Failed to register agent:', error);
-    res.status(500).json({ error: 'Failed to register agent' });
-  }
-});
-
-app.get('/api/chain/agents/:agentId', requirePermission('read:agents'), async (req, res) => {
-  try {
-    const { agentId } = req.params;
-    const agent = await knirvChainService.queryAgent(agentId);
-    res.json(agent);
-  } catch (error) {
-    console.error('Failed to query agent:', error);
-    res.status(500).json({ error: 'Failed to query agent' });
-  }
-});
-
-app.get('/api/chain/transactions/:address', requirePermission('read:transactions'), async (req, res) => {
-  try {
-    const { address } = req.params;
-    const { limit } = req.query;
-
-    const transactions = await knirvChainService.getTransactionHistory(
-      address,
-      limit ? parseInt(limit as string) : 50
-    );
-
-    res.json(transactions);
-  } catch (error) {
-    console.error('Failed to get transaction history:', error);
-    res.status(500).json({ error: 'Failed to get transaction history' });
-  }
-});
-
 // API Key Management Endpoints
 app.post('/api/keys', requirePermission('admin:all'), async (req, res) => {
   try {
@@ -426,8 +227,6 @@ app.get('/api/status', (req, res) => {
 import { personalKNIRVGRAPHService } from '../services/PersonalKNIRVGRAPHService';
 import { FactualitySlice } from '../slices/factualitySlice';
 import { FeasibilityReport } from '../slices/feasibilitySlice';
-import { agentRuntimeService, SkillExecutionRequest } from '../runtime/agent-runtime';
-import { knirvChainService } from '../services/KnirvChainService';
 
 app.post('/api/graph/error', authenticateApiKey, requirePermission('write:graph'), async (req, res) => {
   try {
@@ -435,15 +234,6 @@ app.post('/api/graph/error', authenticateApiKey, requirePermission('write:graph'
   if (!errorId || !description) return res.status(400).json({ error: 'Missing required fields: errorId or description' });
 
   const node = await personalKNIRVGRAPHService.addErrorNode({ errorId, errorType: errorType || 'user-submitted', description, context: context || {}, timestamp: timestamp || Date.now(), factualitySlice });
-
-    // Broadcast graph update
-    broadcastToClients('graph_node_added', {
-      nodeType: 'error',
-      nodeId: node.id,
-      description: description.slice(0, 100),
-      factualityConfidence: factualitySlice?.response.confidence || 0,
-      timestamp: Date.now()
-    });
 
     res.json({ success: true, node });
   } catch (err) {
@@ -459,15 +249,6 @@ app.post('/api/graph/context', authenticateApiKey, requirePermission('write:grap
 
   const node = await personalKNIRVGRAPHService.addContextNode({ contextId, contextName, description: description || '', mcpServerInfo: mcpServerInfo || {}, category: category || 'integration', timestamp: timestamp || Date.now(), capabilitySlice });
 
-    // Broadcast graph update
-    broadcastToClients('graph_node_added', {
-      nodeType: 'capability',
-      nodeId: node.id,
-      name: contextName,
-      category: category || 'integration',
-      timestamp: Date.now()
-    });
-
     res.json({ success: true, node });
   } catch (err) {
     console.error('Failed to create context node:', err);
@@ -482,72 +263,10 @@ app.post('/api/graph/idea', authenticateApiKey, requirePermission('write:graph')
 
   const node = await personalKNIRVGRAPHService.addIdeaNode({ ideaId, ideaName, description: description || '', timestamp: timestamp || Date.now(), feasibilitySlice });
 
-    // Broadcast graph update
-    broadcastToClients('graph_node_added', {
-      nodeType: 'property',
-      nodeId: node.id,
-      name: ideaName,
-      feasibilityScore: feasibilitySlice?.feasibilityScore || 0,
-      exists: feasibilitySlice?.exists || false,
-      timestamp: Date.now()
-    });
-
     res.json({ success: true, node });
   } catch (err) {
     console.error('Failed to create idea node:', err);
     res.status(500).json({ error: 'Failed to create idea node' });
-  }
-});
-
-// Graph export/import endpoints
-app.post('/api/graph/export', authenticateApiKey, requirePermission('read:graph'), async (req, res) => {
-  try {
-    const { userId, graphId } = req.body as { userId?: string; graphId?: string };
-
-    if (!userId) return res.status(400).json({ error: 'Missing required field: userId' });
-
-    const graphs = await personalKNIRVGRAPHService.getAllUserGraphs(userId);
-    if (!graphs || graphs.length === 0) {
-      return res.status(404).json({ error: 'No graphs found for user' });
-    }
-
-    let graph = graphs[0];
-    if (graphId) {
-      const g = graphs.find(g => g.id === graphId);
-      if (!g) return res.status(404).json({ error: 'Graph not found for given graphId' });
-      graph = g;
-    }
-
-    // Return the graph JSON
-    res.json({ success: true, graph });
-  } catch (error) {
-    console.error('Failed to export graph:', error);
-    res.status(500).json({ error: 'Failed to export graph' });
-  }
-});
-
-app.post('/api/graph/import', authenticateApiKey, requirePermission('write:graph'), async (req, res) => {
-  try {
-    const { graph, graphJson } = req.body as { graph?: unknown; graphJson?: string };
-
-    let payload: string | undefined;
-
-    if (graphJson && typeof graphJson === 'string') {
-      payload = graphJson;
-    } else if (graph && typeof graph === 'object') {
-      // Accept direct object and stringify for import function
-      payload = JSON.stringify({ graph });
-    } else {
-      return res.status(400).json({ error: 'Missing graph payload; provide graph (object) or graphJson (string)' });
-    }
-
-    const ok = await personalKNIRVGRAPHService.importGraphFromJSON(payload);
-    if (!ok) return res.status(500).json({ success: false, error: 'Import failed' });
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Failed to import graph:', error);
-    res.status(500).json({ error: 'Failed to import graph' });
   }
 });
 
@@ -592,45 +311,29 @@ app.post('/api/agents/:agentId/undeploy', (req, res) => {
 app.post('/api/cognitive/start', (req, res) => {
   cognitiveState.isRunning = true;
   console.log('Cognitive engine started');
-
-  // Broadcast state change
-  broadcastToClients('cognitive_state_change', {
-    isRunning: true,
-    event: 'started',
-    timestamp: Date.now()
-  });
-
   res.json({ status: 'started' });
 });
 
 app.post('/api/cognitive/stop', (req, res) => {
   cognitiveState.isRunning = false;
   console.log('Cognitive engine stopped');
-
-  // Broadcast state change
-  broadcastToClients('cognitive_state_change', {
-    isRunning: false,
-    event: 'stopped',
-    timestamp: Date.now()
-  });
-
   res.json({ status: 'stopped' });
 });
 
 app.post('/api/cognitive/process', (req, res) => {
   const { input, taskType, requiresSkillInvocation } = req.body;
-
+  
   if (!cognitiveState.isRunning) {
     return res.status(400).json({ error: 'Cognitive engine is not running' });
   }
-
+  
   // Simulate processing
   const processingTime = Math.random() * 1000 + 500; // 500-1500ms
   const skillsInvoked = requiresSkillInvocation ? ['analysis_skill', 'processing_skill'] : [];
-
+  
   cognitiveState.metrics.totalProcessingRequests++;
   cognitiveState.metrics.skillInvocations += skillsInvoked.length;
-
+  
   const response = {
     output: `Processed: ${input}. Task type: ${taskType}`,
     confidence: 0.95,
@@ -639,18 +342,7 @@ app.post('/api/cognitive/process', (req, res) => {
     contextUpdates: { lastInput: input, timestamp: Date.now() },
     adaptationTriggered: Math.random() > 0.8
   };
-
-  // Broadcast processing update
-  broadcastToClients('cognitive_processing', {
-    input: input.slice(0, 100), // Truncate for privacy
-    taskType,
-    skillsInvoked,
-    processingTime,
-    confidence: response.confidence,
-    adaptationTriggered: response.adaptationTriggered,
-    metrics: cognitiveState.metrics
-  });
-
+  
   res.json(response);
 });
 

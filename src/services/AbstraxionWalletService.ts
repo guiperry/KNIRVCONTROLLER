@@ -71,24 +71,12 @@ export interface ConnectOptions {
   autoConnect?: boolean;
 }
 
-// Historical SDKs sometimes accept enableGasless flag; allow it in options
-export interface InternalConnectOptions extends ConnectOptions {
-  enableGasless?: boolean;
-}
-
 // Abstraxion Wallet Service Class
-interface AbstraxionSDK {
-  connect?: (opts?: ConnectOptions) => Promise<{ success: boolean; account?: string }>;
-  disconnect?: () => Promise<void>;
-  signTransaction?: (tx: TransactionMessage) => Promise<TransactionResult>;
-  executeContract?: (msg: ContractMessage) => Promise<TransactionResult>;
-}
-
 export class AbstraxionWalletService {
   private account: XIONAccount | null = null;
   private isInitialized = false;
   private treasuryConfig: TreasuryConfig;
-  private abstraxionSDK: AbstraxionSDK | null = null; // Will be @burnt-labs/abstraxion-react-native
+  private abstraxionSDK: unknown = null; // Will be @burnt-labs/abstraxion-react-native
 
   // Configuration
   private config = {
@@ -117,16 +105,7 @@ export class AbstraxionWalletService {
       maxGasLimit: '200000',
       allowedOperations: ['usdc_to_nrn', 'nrn_transfer', 'skill_invocation']
     };
-  // Allow overriding endpoints via environment variables (wired from KNIRVTESTNET/config/endpoints.yaml)
-  const envKnirvOracle = process.env.KNIRVORACLE_API;
-  const envRpc = process.env.KNIRVCHAIN_API;
-  const envRest = process.env.KNIRVCHAIN_API; // fallback; specific REST URL may be provided separately
-
-  if (envKnirvOracle) this.config.endpoints.knirvOracle = envKnirvOracle;
-  if (envRpc) this.config.endpoints.rpc = envRpc;
-  if (envRest) this.config.endpoints.rest = envRest;
-
-  this.initialize();
+    this.initialize();
   }
 
   private async initialize(): Promise<void> {
@@ -149,7 +128,7 @@ export class AbstraxionWalletService {
         disconnect: this.mockDisconnect.bind(this),
         signTransaction: this.mockSignTransaction.bind(this),
         executeContract: this.mockExecuteContract.bind(this)
-      } as AbstraxionSDK;
+      };
 
       this.isInitialized = true;
       console.log('Abstraxion wallet service initialized with Dave SDK');
@@ -168,20 +147,17 @@ export class AbstraxionWalletService {
       console.log(`Connecting to XION wallet using ${authMethod} authentication...`);
 
       // In a real implementation, this would call Abstraxion's connect method
-      // with the specified authentication method. Guard since SDK may be null.
-      let connectionResult: { success: boolean; account?: string } | undefined;
-      if (this.abstraxionSDK && typeof this.abstraxionSDK.connect === 'function') {
-        connectionResult = await this.abstraxionSDK.connect({
-          authMethod,
-          enableGasless: this.treasuryConfig.enabled
-        } as InternalConnectOptions);
-      }
+      // with the specified authentication method
+      const connectionResult = await (this.abstraxionSDK as any).connect({
+        authMethod,
+        enableGasless: this.treasuryConfig.enabled
+      });
 
-      // Log connection result for debugging if present
-      console.log('Connection established:', connectionResult?.success ?? false);
+      // Log connection result for debugging
+      console.log('Connection established:', connectionResult.success);
 
       // Simulate connection with Meta Account features
-  this.account = {
+      this.account = {
         id: 'xion_meta_account_' + Date.now(),
         address: 'xion1abc123def456...',
         name: `XION Meta Account (${authMethod})`,
@@ -203,8 +179,8 @@ export class AbstraxionWalletService {
 
   // Disconnect wallet
   async disconnectWallet(): Promise<void> {
-    if (this.abstraxionSDK && typeof this.abstraxionSDK.disconnect === 'function') {
-      await this.abstraxionSDK.disconnect();
+    if (this.abstraxionSDK) {
+      await (this.abstraxionSDK as any).disconnect();
     }
     this.account = null;
     console.log('Disconnected from XION wallet');
@@ -319,17 +295,8 @@ export class AbstraxionWalletService {
       const nrnAmount = (parseFloat(request.usdcAmount) * conversionRate).toString();
 
       // Prepare transaction message
-      // Build a TransactionMessage for execution
-      const txMsg: TransactionMessage = {
-        from: this.account!.address,
-        to: this.config.contracts.swapContract,
-        amount: request.usdcAmount,
-        memo: request.memo,
-        // keep a cosmwasm wrapper for SDKs that expect typeUrl/value
-        // (some SDKs may accept a raw contract message instead)
-        // Use 'value' field as legacy compatibility
-  typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
-  // optional compatibility field for legacy SDKs
+      const txMsg = {
+        typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
         value: {
           sender: this.account!.address,
           contract: this.config.contracts.swapContract,
@@ -345,19 +312,16 @@ export class AbstraxionWalletService {
             amount: request.usdcAmount
           }]
         }
-      } as unknown as TransactionMessage;
+      };
 
       // Execute transaction (gasless if treasury is enabled)
       let txResult;
       if (request.gasless && this.treasuryConfig.enabled) {
         console.log('Executing gasless transaction via Treasury Contract...');
-        txResult = await this.executeGaslessTransaction(txMsg);
-      } else if (this.abstraxionSDK && typeof this.abstraxionSDK.signTransaction === 'function') {
-        console.log('Executing standard transaction...');
-        txResult = await this.abstraxionSDK.signTransaction(txMsg);
+        txResult = await this.executeGaslessTransaction(txMsg as any);
       } else {
-        // SDK not available, fallback to mock
-        txResult = await this.mockSignTransaction(txMsg);
+        console.log('Executing standard transaction...');
+        txResult = await (this.abstraxionSDK as any).signTransaction(txMsg);
       }
 
       const result: ConversionResult = {
@@ -727,144 +691,32 @@ export class AbstraxionWalletService {
     }
   }
 
-  // Public wrapper: sign a transaction message
-  async signTransaction(txMsg: TransactionMessage): Promise<TransactionResult> {
-    const sdk = this.abstraxionSDK;
-    if (sdk && typeof sdk.signTransaction === 'function') {
-      return await sdk.signTransaction(txMsg);
-    }
-
-    // Fallback to mock
-    return await this.mockSignTransaction(txMsg);
-  }
-
-  // Public wrapper: execute a contract message
-  async executeContract(contractMsg: ContractMessage): Promise<TransactionResult> {
-    const sdk = this.abstraxionSDK;
-    if (sdk && typeof sdk.executeContract === 'function') {
-      return await sdk.executeContract(contractMsg);
-    }
-
-    // Fallback to mock
-    return await this.mockExecuteContract(contractMsg);
-  }
-
-  // Public wrapper: get account balance (alias)
-  async getAccountBalancePublic(address?: string) {
-    return await this.getAccountBalance(address);
-  }
-
-  // Real SDK methods - integrate with @burnt-labs/abstraxion-react-native when available
+  // Mock SDK methods (in real implementation, these would be from @burnt-labs/abstraxion-react-native)
   private async mockConnect(options: ConnectOptions): Promise<{ success: boolean; account: string }> {
-    try {
-      // Try to use real Abstraxion SDK if available
-      if (typeof window !== 'undefined' && (window as any).abstraxion) {
-        const abstraxion = (window as any).abstraxion;
-        const result = await abstraxion.connect(options);
-        return result;
-      }
-
-      // Fallback: Use XION wallet connection if available
-      if (typeof window !== 'undefined' && (window as any).xion) {
-        const xion = (window as any).xion;
-        const accounts = await xion.getAccounts();
-        if (accounts.length > 0) {
-          return { success: true, account: accounts[0].address };
-        }
-      }
-
-      // Last resort: Generate deterministic test account for development
-      console.warn('Using development wallet - not for production');
-      const testAccount = `xion1${Math.random().toString(36).substring(2, 15)}`;
-      return { success: true, account: testAccount };
-    } catch (error) {
-      console.error('Wallet connection failed:', error);
-      throw new Error(`Failed to connect wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    console.log('Mock connect with options:', options);
+    return { success: true, account: 'xion1...' };
   }
 
   private async mockDisconnect(): Promise<void> {
-    try {
-      if (typeof window !== 'undefined' && (window as any).abstraxion) {
-        await (window as any).abstraxion.disconnect();
-        return;
-      }
-
-      if (typeof window !== 'undefined' && (window as any).xion) {
-        await (window as any).xion.disconnect();
-        return;
-      }
-
-      console.log('Wallet disconnected (development mode)');
-    } catch (error) {
-      console.error('Wallet disconnect failed:', error);
-    }
+    console.log('Mock disconnect');
   }
 
   private async mockSignTransaction(txMsg: TransactionMessage): Promise<TransactionResult> {
-    try {
-      // Try real wallet signing first
-      if (typeof window !== 'undefined' && (window as any).abstraxion) {
-        return await (window as any).abstraxion.signTransaction(txMsg);
-      }
-
-      if (typeof window !== 'undefined' && (window as any).xion) {
-        const result = await (window as any).xion.signAndBroadcast(txMsg);
-        return {
-          transactionHash: result.transactionHash,
-          gasUsed: result.gasUsed?.toString() || '150000',
-          fee: result.fee || '0.001',
-          success: result.code === 0
-        };
-      }
-
-      // Development fallback with validation
-      console.warn('Using development transaction signing - not for production');
-      if (!txMsg.messages || txMsg.messages.length === 0) {
-        throw new Error('Invalid transaction: no messages');
-      }
-
-      return {
-        transactionHash: `dev_tx_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        gasUsed: '150000',
-        fee: '0.001',
-        success: true
-      };
-    } catch (error) {
-      console.error('Transaction signing failed:', error);
-      throw new Error(`Failed to sign transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    console.log('Mock sign transaction:', txMsg);
+    return {
+      transactionHash: 'tx_' + Date.now(),
+      gasUsed: '150000',
+      fee: '0.001',
+      success: true
+    };
   }
 
   private async mockExecuteContract(contractMsg: ContractMessage): Promise<TransactionResult> {
-    try {
-      // Try real contract execution first
-      if (typeof window !== 'undefined' && (window as any).abstraxion) {
-        return await (window as any).abstraxion.executeContract(contractMsg);
-      }
-
-      if (typeof window !== 'undefined' && (window as any).xion) {
-        const result = await (window as any).xion.executeContract(contractMsg);
-        return {
-          transactionHash: result.transactionHash,
-          success: result.code === 0
-        };
-      }
-
-      // Development fallback with validation
-      console.warn('Using development contract execution - not for production');
-      if (!contractMsg.contractAddress || !contractMsg.msg) {
-        throw new Error('Invalid contract message: missing address or message');
-      }
-
-      return {
-        transactionHash: `dev_contract_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        success: true
-      };
-    } catch (error) {
-      console.error('Contract execution failed:', error);
-      throw new Error(`Failed to execute contract: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    console.log('Mock execute contract:', contractMsg);
+    return {
+      transactionHash: 'contract_tx_' + Date.now(),
+      success: true
+    };
   }
 
   // Get conversion history
@@ -983,10 +835,6 @@ export const useAbstraxionWallet = () => {
     return await walletService.getUSDCBalance();
   };
 
-  const getConversionHistory = async () => {
-    return await walletService.getConversionHistory();
-  };
-
   return {
     account,
     isConnected,
@@ -994,8 +842,7 @@ export const useAbstraxionWallet = () => {
     connect,
     disconnect,
     convertUSDCToNRN,
-    getUSDCBalance,
-    getConversionHistory
+    getUSDCBalance
   };
 };
 

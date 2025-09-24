@@ -38,7 +38,7 @@ export const decryptAES = jest.fn(async (encryptedData: string, key: string): Pr
   return encryptedData.replace(`encrypted_`, '').replace(`_with_${key}`, '');
 });
 
-export const makeCryptKey = jest.fn(async (password: string, _salt?: string): Promise<string> => {
+export const makeCryptKey = jest.fn(async (password: string, salt?: string): Promise<string> => {
   // Simulate proper key derivation behavior
   if (password === null || password === undefined) {
     throw new Error('Password is required for key derivation');

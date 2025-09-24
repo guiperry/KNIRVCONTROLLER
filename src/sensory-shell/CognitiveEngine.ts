@@ -14,12 +14,6 @@ import { KNIRVWalletIntegration } from './KNIRVWalletIntegration';
 import { KNIRVChainIntegration } from './KNIRVChainIntegration';
 import { EcosystemCommunicationLayer } from './EcosystemCommunicationLayer';
 import { ErrorContextManager, AgentConfiguration, SkillDiscoveryResult, SkillInvocationResult } from '../core/cortex/ErrorContextManager';
-import {
-  externalInferenceOrchestrator,
-  ExternalInferenceOrchestrator,
-  CortexInferenceRequest,
-  CortexInferenceResponse
-} from './ExternalInferenceOrchestrator';
 
 // Define comprehensive type system for cognitive processing
 export type CognitiveInput = string | ArrayBuffer | Record<string, unknown> | unknown[];
@@ -103,7 +97,6 @@ export class CognitiveEngine extends EventEmitter {
   private chainIntegration!: KNIRVChainIntegration;
   private ecosystemCommunication!: EcosystemCommunicationLayer;
   private errorContextManager: ErrorContextManager | null = null;
-  private externalInferenceOrchestrator: ExternalInferenceOrchestrator;
   private isRunning: boolean = false;
   private adaptationTimer: NodeJS.Timeout | null = null;
 
@@ -117,9 +110,6 @@ export class CognitiveEngine extends EventEmitter {
       confidenceLevel: 0.5,
       adaptationLevel: 0.0,
     };
-
-    // Initialize external inference orchestrator
-    this.externalInferenceOrchestrator = externalInferenceOrchestrator;
 
     this.initializeComponents();
   }
@@ -781,11 +771,8 @@ export class CognitiveEngine extends EventEmitter {
 
       let response: unknown;
 
-      // Check if external inference is available and should be used for text input
-      if (this.externalInferenceOrchestrator.isReady() && typeof input === 'string') {
-        response = await this.processWithExternalInference(input, inputType);
-      } else if (this.wasmAgentManager && this.wasmAgentManager.isReady()) {
-        // Use WASM Agent for cognitive processing if available (Revolutionary Feature)
+      // Use WASM Agent for cognitive processing if available (Revolutionary Feature)
+      if (this.wasmAgentManager && this.wasmAgentManager.isReady()) {
         response = await this.processWithWASMAgent(input, inputType);
       } else if (this.hrmBridge && this.hrmBridge.isReady()) {
         // Fallback to HRM for cognitive processing
@@ -863,138 +850,6 @@ export class CognitiveEngine extends EventEmitter {
 
       throw error;
     }
-  }
-
-  /**
-   * Process input through external inference orchestrator
-   * Routes cortex.wasm inference through external API channels during beta
-   */
-  private async processWithExternalInference(input: string, inputType: string): Promise<unknown> {
-    console.log('Processing with External Inference:', inputType);
-
-    try {
-      // Determine task type based on input type and content
-      let taskType: 'conversation' | 'reasoning' | 'code-generation' | 'analysis' | 'creative' = 'conversation';
-
-      if (inputType === 'code' || input.includes('function') || input.includes('class')) {
-        taskType = 'code-generation';
-      } else if (inputType === 'analysis' || input.includes('analyze') || input.includes('evaluate')) {
-        taskType = 'analysis';
-      } else if (inputType === 'reasoning' || input.includes('explain') || input.includes('why')) {
-        taskType = 'reasoning';
-      } else if (inputType === 'creative' || input.includes('create') || input.includes('imagine')) {
-        taskType = 'creative';
-      }
-
-      // Prepare context from current cognitive state
-      const context = {
-        activeSkills: this.state.activeSkills,
-        confidenceLevel: this.state.confidenceLevel,
-        adaptationLevel: this.state.adaptationLevel,
-        contextSize: this.state.currentContext.size,
-        recentLearning: this.state.learningHistory.slice(-5).map(event => ({
-          type: event.eventType,
-          feedback: event.feedback,
-          timestamp: event.timestamp
-        }))
-      };
-
-      // Create inference request
-      const inferenceRequest: CortexInferenceRequest = {
-        prompt: input,
-        context,
-        taskType,
-        maxTokens: 1024,
-        temperature: 0.7,
-        systemPrompt: this.generateSystemPrompt(taskType),
-        metadata: {
-          sessionId: 'cognitive-engine-session',
-          agentId: 'cognitive-engine'
-        }
-      };
-
-      // Process through external inference orchestrator
-      const inferenceResponse: CortexInferenceResponse = await this.externalInferenceOrchestrator.processInference(inferenceRequest);
-
-      if (inferenceResponse.success) {
-        // Update cognitive state based on response
-        this.state.confidenceLevel = Math.min(1.0, this.state.confidenceLevel + 0.05);
-
-        // Emit external inference event
-        this.emit('externalInferenceProcessed', {
-          inputType,
-          taskType,
-          provider: inferenceResponse.provider,
-          processingTime: inferenceResponse.processingTime,
-          confidence: inferenceResponse.confidence
-        });
-
-        return inferenceResponse.content;
-      } else {
-        throw new Error(inferenceResponse.error || 'External inference failed');
-      }
-    } catch (error) {
-      console.error('Error in processWithExternalInference:', error);
-      this.state.confidenceLevel = Math.max(0, this.state.confidenceLevel - 0.1);
-
-      // Fallback to traditional processing if external inference fails
-      console.log('Falling back to traditional processing...');
-      return this.processWithFallback(input, inputType);
-    }
-  }
-
-  /**
-   * Generate system prompt based on task type and cognitive state
-   */
-  private generateSystemPrompt(taskType: string): string {
-    const basePrompt = `You are an advanced AI cognitive engine in the KNIRV system. `;
-    const contextPrompt = `Current confidence level: ${this.state.confidenceLevel.toFixed(2)}, ` +
-      `Active skills: ${this.state.activeSkills.length}, ` +
-      `Adaptation level: ${this.state.adaptationLevel.toFixed(2)}. `;
-
-    switch (taskType) {
-      case 'code-generation':
-        return basePrompt + contextPrompt +
-          `Focus on generating clean, efficient, and well-documented code. ` +
-          `Consider the cognitive context and adapt your coding style accordingly.`;
-
-      case 'reasoning':
-        return basePrompt + contextPrompt +
-          `Provide step-by-step logical reasoning. Break down complex problems and ` +
-          `show your thought process clearly.`;
-
-      case 'analysis':
-        return basePrompt + contextPrompt +
-          `Perform thorough analysis with objective insights. Consider multiple perspectives ` +
-          `and provide actionable recommendations.`;
-
-      case 'creative':
-        return basePrompt + contextPrompt +
-          `Generate creative and innovative ideas while maintaining practical relevance. ` +
-          `Use your cognitive context to inspire unique solutions.`;
-
-      default: // conversation
-        return basePrompt + contextPrompt +
-          `Engage in helpful, contextually aware conversation. Adapt your responses ` +
-          `based on the cognitive state and user needs.`;
-    }
-  }
-
-  /**
-   * Fallback processing when external inference fails
-   */
-  private async processWithFallback(input: unknown, inputType: string): Promise<unknown> {
-    // Process through Fabric Algorithm
-    const fabricResult = await this.fabricAlgorithm.process(input, {
-      context: this.state.currentContext,
-      inputType,
-    });
-
-    // Generate response using SEAL Framework
-    return await this.sealFramework.generateResponse(fabricResult, {
-      confidenceLevel: this.state.confidenceLevel,
-      activeSkills: this.state.activeSkills,
-    });
   }
 
   private async processWithHRM(input: unknown, inputType: string): Promise<unknown> {
@@ -1491,11 +1346,11 @@ export class CognitiveEngine extends EventEmitter {
         return {
           input: trainingItem.input || item,
           output: trainingItem.output || '',
-          feedback: Number(trainingItem.feedback) || 0,
-          timestamp: new Date(Number(trainingItem.timestamp) || Date.now())
+          feedback: trainingItem.feedback || 0,
+          timestamp: trainingItem.timestamp || Date.now()
         };
       });
-      await this.enhancedLoraAdapter.trainOnBatch(formattedTrainingData);
+      await this.enhancedLoraAdapter.trainOnBatch(formattedTrainingData as any);
       console.log('Enhanced LoRA training completed');
       return {
         success: true,
@@ -2368,7 +2223,7 @@ export class CognitiveEngine extends EventEmitter {
         };
       } else {
         // No mock results - throw error for proper error handling
-        throw new Error(`Contract call ${callData.contract}.${callData.method} returned undefined result`);
+        throw new Error(`Contract call ${(call as any).contract}.${(call as any).method} returned undefined result`);
       }
     } catch (error) {
       console.error('Failed to execute contract call:', error);
@@ -3226,7 +3081,7 @@ export class CognitiveEngine extends EventEmitter {
       const config = this.convertSolutionsToSkillConfig(skillName, solutions, errors);
 
       // Compile the skill
-      const result = await this.typeScriptCompiler.compileSkill(this._config as any);
+      const result = await this.typeScriptCompiler.compileSkill(config as any);
 
       if (result.success) {
         this.emit('skillCompiledFromSolutions', {

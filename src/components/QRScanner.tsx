@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import QrScanner from 'qr-scanner';
-import { Camera, Flashlight, FlashlightOff, Wallet, Send, Loader, X, CheckCircle, AlertCircle, Gamepad2, Users } from 'lucide-react';
+import { Camera, Flashlight, FlashlightOff, Wallet, Send, Loader, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { qrPaymentService, QRPaymentRequest, PaymentProcessingResult } from '../services/QRPaymentService';
 import { walletIntegrationService, Transaction, TransactionRequest } from '../services/WalletIntegrationService';
-import { knirvanaBridgeService } from '../services/KnirvanaBridgeService';
-import { personalKNIRVGRAPHService } from '../services/PersonalKNIRVGRAPHService';
 
 interface QRScannerProps {
   onScan: (result: string) => void;
@@ -18,18 +16,6 @@ interface PaymentState {
   result?: PaymentProcessingResult;
   error?: string;
   transaction?: Transaction;
-}
-
-interface KnirvanaConnectionState {
-  step: 'scanning' | 'connecting' | 'merging' | 'success' | 'error';
-  gameSession?: {
-    sessionId: string;
-    gameId: string;
-    endpoint: string;
-    publicKey: string;
-  };
-  error?: string;
-  mergeProgress?: number;
 }
 
 // QRData interface removed as it's not currently used
@@ -64,9 +50,6 @@ export default function QRScanner({
   const [paymentState, setPaymentState] = useState<PaymentState>({ step: 'scanning' });
   const [userBalance, setUserBalance] = useState<{ nrn: string; balance: string }>({ nrn: '0', balance: '0' });
 
-  // KNIRVANA connection state
-  const [knirvanaState, setKnirvanaState] = useState<KnirvanaConnectionState>({ step: 'scanning' });
-
   // Load user balance when component opens
   const loadUserBalance = useCallback(async () => {
     try {
@@ -83,82 +66,8 @@ export default function QRScanner({
     }
   }, []);
 
-  const handleKnirvanaConnection = useCallback(async (qrData: string) => {
-    try {
-      setKnirvanaState({ step: 'connecting' });
-
-      // Parse KNIRVANA QR code
-      let gameSession;
-      if (qrData.startsWith('knirvana://')) {
-        const url = new URL(qrData);
-        gameSession = {
-          sessionId: url.searchParams.get('session') || '',
-          gameId: url.searchParams.get('game') || '',
-          endpoint: url.searchParams.get('endpoint') || '',
-          publicKey: url.searchParams.get('key') || ''
-        };
-      } else {
-        // JSON format
-        const parsed = JSON.parse(qrData);
-        gameSession = {
-          sessionId: parsed.sessionId || parsed.session,
-          gameId: parsed.gameId || parsed.game,
-          endpoint: parsed.endpoint || parsed.url,
-          publicKey: parsed.publicKey || parsed.key
-        };
-      }
-
-      if (!gameSession.sessionId || !gameSession.endpoint) {
-        throw new Error('Invalid KNIRVANA session QR code');
-      }
-
-      setKnirvanaState({
-        step: 'connecting',
-        gameSession
-      });
-
-      // Connect to KNIRVANA game session
-      await knirvanaBridgeService.connectToGameSession(gameSession);
-
-      // Start graph merging process
-      setKnirvanaState(prev => ({ ...prev, step: 'merging', mergeProgress: 0 }));
-
-      // Get personal graph
-      const personalGraph = await personalKNIRVGRAPHService.exportGraph();
-
-      // Merge with collective graph
-      await knirvanaBridgeService.mergeGraphs(personalGraph, {
-        onProgress: (progress) => {
-          setKnirvanaState(prev => ({ ...prev, mergeProgress: progress }));
-        }
-      });
-
-      setKnirvanaState({
-        step: 'success',
-        gameSession,
-        mergeProgress: 100
-      });
-
-      // Notify parent component
-      onScan(`knirvana-connected:${gameSession.sessionId}`);
-
-    } catch (error) {
-      console.error('KNIRVANA connection error:', error);
-      setKnirvanaState({
-        step: 'error',
-        error: error instanceof Error ? error.message : 'Connection failed'
-      });
-    }
-  }, [onScan]);
-
   const handleScanResult = useCallback((data: string) => {
     try {
-      // Check if this is a KNIRVANA game session QR code
-      if (data.startsWith('knirvana://') || data.includes('knirvana-session')) {
-        handleKnirvanaConnection(data);
-        return;
-      }
-
       // Parse QR code using the payment service
       const scanResult = qrPaymentService.parseQRCode(data);
 
@@ -183,9 +92,7 @@ export default function QRScanner({
         error: error instanceof Error ? error.message : 'QR scan failed'
       });
     }
-  }, [onScan, handleKnirvanaConnection]);
-
-
+  }, [onScan]);
 
   const initializeScanner = useCallback(async () => {
     if (!videoRef.current) return;
@@ -426,129 +333,6 @@ export default function QRScanner({
               </div>
             </div>
           </>
-        ) : knirvanaState.step !== 'scanning' ? (
-          /* KNIRVANA Connection UI */
-          <div className="flex-1 bg-gray-900 p-6 flex flex-col justify-center">
-            {knirvanaState.step === 'connecting' && (
-              <div className="max-w-md mx-auto w-full space-y-6">
-                <div className="text-center">
-                  <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-purple-400 animate-pulse" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Connecting to KNIRVANA</h3>
-                  <p className="text-gray-400">Establishing connection to game session...</p>
-                </div>
-
-                {knirvanaState.gameSession && (
-                  <div className="bg-gray-800 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Session ID:</span>
-                      <span className="text-white font-mono text-sm">{knirvanaState.gameSession.sessionId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Game ID:</span>
-                      <span className="text-white">{knirvanaState.gameSession.gameId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Endpoint:</span>
-                      <span className="text-white text-sm">{knirvanaState.gameSession.endpoint}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-center">
-                  <Loader className="w-8 h-8 text-purple-400 animate-spin" />
-                </div>
-              </div>
-            )}
-
-            {knirvanaState.step === 'merging' && (
-              <div className="max-w-md mx-auto w-full space-y-6">
-                <div className="text-center">
-                  <Users className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Merging Graphs</h3>
-                  <p className="text-gray-400">Integrating your personal KNIRVGRAPH with the collective...</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="w-full bg-gray-700 rounded-full h-3">
-                    <div
-                      className="h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                      style={{ width: `${knirvanaState.mergeProgress || 0}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-center text-sm text-gray-400">
-                    {knirvanaState.mergeProgress || 0}% complete
-                  </p>
-                </div>
-
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <p className="text-sm text-gray-300 text-center">
-                    Your errors and ideas are being semantically clustered with other players' contributions...
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {knirvanaState.step === 'success' && (
-              <div className="max-w-md mx-auto w-full space-y-6">
-                <div className="text-center">
-                  <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Connected!</h3>
-                  <p className="text-gray-400">Successfully connected to KNIRVANA collective graph</p>
-                </div>
-
-                <div className="bg-gray-800 rounded-lg p-4 space-y-3">
-                  <div className="text-center">
-                    <p className="text-green-400 font-semibold">Graph Merge Complete</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Your personal KNIRVGRAPH is now part of the collective.
-                      Other players can see your error and idea nodes, and you can see theirs!
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setKnirvanaState({ step: 'scanning' });
-                    onClose();
-                  }}
-                  className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                >
-                  Continue to Game
-                </button>
-              </div>
-            )}
-
-            {knirvanaState.step === 'error' && (
-              <div className="max-w-md mx-auto w-full space-y-6">
-                <div className="text-center">
-                  <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
-                  <h3 className="text-xl font-semibold text-white mb-2">Connection Failed</h3>
-                  <p className="text-gray-400">Failed to connect to KNIRVANA session</p>
-                </div>
-
-                <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-                  <p className="text-red-400 text-sm text-center">
-                    {knirvanaState.error}
-                  </p>
-                </div>
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setKnirvanaState({ step: 'scanning' })}
-                    className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                  >
-                    Try Again
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         ) : (
           /* Payment Workflow UI */
           <div className="flex-1 bg-gray-900 p-6 flex flex-col justify-center">

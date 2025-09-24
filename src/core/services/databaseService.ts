@@ -75,7 +75,7 @@ const agentSchema = {
   },
   required: ['agentId', 'name', 'version', 'type', 'status', 'nrnCost'],
   additionalProperties: false
-};
+} as const;
 
 const skillSchema = {
   version: 0,
@@ -110,7 +110,7 @@ const skillSchema = {
   },
   required: ['skillId', 'name'],
   additionalProperties: false
-};
+} as const;
 
 const chatSessionSchema = {
   version: 0,
@@ -142,7 +142,7 @@ const chatSessionSchema = {
   },
   required: ['id', 'title'],
   additionalProperties: false
-};
+} as const;
 
 // Type definitions
 type AgentDocType = {
@@ -213,13 +213,13 @@ const initDatabase = async (): Promise<DatabaseType> => {
   // Add collections
   await database.addCollections({
     agents: {
-      schema: agentSchema as any
+      schema: agentSchema
     },
     skills: {
-      schema: skillSchema as any
+      schema: skillSchema
     },
     chatSessions: {
-      schema: chatSessionSchema as any
+      schema: chatSessionSchema
     }
   });
 

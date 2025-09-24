@@ -3,8 +3,8 @@
  * Manages individual user's graph instance with error mapping and visualization
  */
 
-import { FactualitySlice, createFactualitySlice } from '../slices/factualitySlice';
-import { FeasibilityReport, createFeasibilitySlice } from '../slices/feasibilitySlice';
+import { FactualitySlice } from '../slices/factualitySlice';
+import { FeasibilityReport } from '../slices/feasibilitySlice';
 
 interface ErrorNodeData {
   errorId: string;
@@ -201,28 +201,16 @@ export class PersonalKNIRVGRAPHService {
     description: string;
     context: Record<string, unknown>;
     timestamp: number;
-    factualitySlice?: FactualitySlice;
+  factualitySlice?: FactualitySlice;
   }): Promise<GraphNode> {
     if (!this.currentGraph) throw new Error('No active graph');
-
-    // Generate factuality slice if not provided
-    const factualitySlice = errorData.factualitySlice ||
-      createFactualitySlice(errorData.description, errorData.context);
-
-    const errorNodeData: ErrorNodeData = {
-      errorId: errorData.errorId,
-      errorType: errorData.errorType,
-      description: errorData.description,
-      context: errorData.context,
-      timestamp: errorData.timestamp
-    };
 
     const node: GraphNode = {
       id: `error_${errorData.errorId}`,
       type: 'error',
       label: errorData.description,
       position: this.calculateNodePosition(),
-      data: { ...errorNodeData, factualitySlice } as NodeWithSlices,
+  data: { ...(errorData as ErrorNodeData), factualitySlice: errorData.factualitySlice } as NodeWithSlices,
       connections: []
     };
 
@@ -234,7 +222,6 @@ export class PersonalKNIRVGRAPHService {
     // Update graph
     await this.updateGraph();
 
-    console.log(`Added error node with factuality slice (confidence: ${factualitySlice.response.confidence})`);
     return node;
   }
 
@@ -246,20 +233,9 @@ export class PersonalKNIRVGRAPHService {
     mcpServerInfo: Record<string, unknown>;
     category: string;
     timestamp: number;
-    capabilitySlice?: FactualitySlice;
+  capabilitySlice?: FactualitySlice;
   }): Promise<GraphNode> {
     if (!this.currentGraph) throw new Error('No active graph');
-
-    // Generate capability slice if not provided (using factuality slice for technical context)
-    const capabilitySlice = contextData.capabilitySlice ||
-      createFactualitySlice(
-        `${contextData.contextName}: ${contextData.description}`,
-        {
-          mcpServerInfo: contextData.mcpServerInfo,
-          category: contextData.category,
-          type: 'capability_context'
-        }
-      );
 
     const capabilityData: CapabilityNodeData = {
       capabilityId: contextData.contextId,
@@ -275,7 +251,7 @@ export class PersonalKNIRVGRAPHService {
       type: 'capability',
       label: contextData.contextName,
       position: this.calculateNodePosition(),
-      data: { ...capabilityData, capabilitySlice } as NodeWithSlices,
+  data: { ...capabilityData, capabilitySlice: contextData.capabilitySlice } as NodeWithSlices,
       connections: []
     };
 
@@ -287,7 +263,6 @@ export class PersonalKNIRVGRAPHService {
     // Update graph
     await this.updateGraph();
 
-    console.log(`Added capability node with factuality slice (confidence: ${capabilitySlice.response.confidence})`);
     return node;
   }
 
@@ -297,24 +272,11 @@ export class PersonalKNIRVGRAPHService {
     ideaName: string;
     description: string;
     timestamp: number;
-    feasibilitySlice?: FeasibilityReport;
+  feasibilitySlice?: FeasibilityReport;
   }): Promise<GraphNode> {
     if (!this.currentGraph) throw new Error('No active graph');
 
-    // Get existing property nodes for similarity comparison
-    const existingProperties = this.currentGraph.nodes
-      .filter(n => n.type === 'property')
-      .map(n => ({
-        id: n.id,
-        text: `${n.label} ${(n.data as PropertyNodeData).description}`,
-        source: 'local'
-      }));
-
-    // Generate enhanced feasibility slice if not provided
-    const feasibilitySlice = ideaData.feasibilitySlice ||
-      createFeasibilitySlice(ideaData.ideaName, ideaData.description, existingProperties);
-
-    // Generate legacy feasibility report for backward compatibility
+    // Generate feasibility report
     const feasibilityReport = await this.generateFeasibilityReport(ideaData);
 
     const propertyData: PropertyNodeData = {
@@ -331,7 +293,7 @@ export class PersonalKNIRVGRAPHService {
       type: 'property',
       label: ideaData.ideaName,
       position: this.calculateNodePosition(),
-      data: { ...propertyData, feasibilitySlice } as NodeWithSlices,
+      data: { ...propertyData, feasibilitySlice: ideaData.feasibilitySlice } as NodeWithSlices,
       connections: []
     };
 
@@ -343,7 +305,6 @@ export class PersonalKNIRVGRAPHService {
     // Update graph
     await this.updateGraph();
 
-    console.log(`Added idea node with feasibility slice (score: ${feasibilitySlice.feasibilityScore}%, exists: ${feasibilitySlice.exists})`);
     return node;
   }
 
@@ -370,54 +331,6 @@ export class PersonalKNIRVGRAPHService {
     await this.updateGraph();
 
     return node;
-  }
-
-  // Add capability node to graph - Direct capability minting
-  async addCapabilityNode(capabilityData: {
-    capabilityId: string;
-    name: string;
-    description: string;
-    capabilityType: string;
-    mcpServerUrl: string;
-    schema: string;
-    locationHints: string[];
-    gasFeeNRN: number;
-    status: string;
-  }): Promise<GraphNode> {
-    if (!this.currentGraph) throw new Error('No active graph');
-
-    const node: GraphNode = {
-      id: `capability_${capabilityData.capabilityId}`,
-      type: 'capability',
-      label: capabilityData.name,
-      position: this.calculateNodePosition(),
-      data: capabilityData,
-      connections: []
-    };
-
-    this.currentGraph.nodes.push(node);
-    await this.updateGraph();
-
-    return node;
-  }
-
-  // Export current graph for external use (e.g., KNIRVANA merging)
-  async exportGraph(): Promise<PersonalGraph> {
-    if (!this.currentGraph) {
-      throw new Error('No active graph to export');
-    }
-
-    return {
-      nodes: this.currentGraph.nodes.map(node => ({
-        id: node.id,
-        type: node.type,
-        label: node.label,
-        position: node.position,
-        data: node.data,
-        connections: node.connections
-      })),
-      edges: this.currentGraph.edges || []
-    };
   }
 
   // Create connection between nodes
@@ -528,69 +441,27 @@ export class PersonalKNIRVGRAPHService {
     }
   }
 
-  // Generate feasibility report for ideas using real analysis
+  // Generate feasibility report for ideas
   private async generateFeasibilityReport(ideaData: {
     ideaId: string;
     ideaName: string;
     description: string;
   }): Promise<PropertyNodeData['feasibilityReport']> {
-    try {
-      // Use the real feasibility slice implementation
-      const { createFeasibilitySlice } = await import('../slices/feasibilitySlice');
-
-      // Get existing ideas from the current graph for similarity analysis
-      const existingIdeas = this.currentGraph?.nodes
-        .filter(node => node.type === 'property')
-        .map(node => ({
-          title: node.data.propertyName || node.data.title || 'Unknown',
-          description: node.data.description || ''
-        })) || [];
-
-      // Create feasibility slice with real analysis
-      const feasibilitySlice = createFeasibilitySlice(
-        ideaData.ideaName,
-        ideaData.description,
-        existingIdeas
-      );
-
-      // Extract data from the feasibility slice
-      const report = feasibilitySlice.report;
-
-      return {
-        exists: report.exists,
-        similarProjects: report.similar.map(s => s.title),
-        feasibilityScore: report.feasibilityScore,
-        marketAnalysis: {
-          marketSize: report.marketAnalysis.marketSize,
-          competition: report.marketAnalysis.competitionLevel === 'low' ? 10 :
-                      report.marketAnalysis.competitionLevel === 'medium' ? 30 : 50,
-          trendScore: report.marketAnalysis.trendScore
-        }
-      };
-    } catch (error) {
-      console.error('Failed to generate feasibility report:', error);
-
-      // Fallback to basic analysis if feasibility slice fails
-      const basicExists = existingIdeas.some(idea =>
-        idea.title.toLowerCase().includes(ideaData.ideaName.toLowerCase()) ||
-        ideaData.ideaName.toLowerCase().includes(idea.title.toLowerCase())
-      );
-
-      return {
-        exists: basicExists,
-        similarProjects: basicExists ?
-          existingIdeas
-            .filter(idea => idea.title.toLowerCase().includes(ideaData.ideaName.toLowerCase()))
-            .map(idea => idea.title)
-            .slice(0, 3) : [],
-        feasibilityScore: basicExists ? 40 : 75, // Lower score if similar exists
-        marketAnalysis: {
-          marketSize: 100000, // Conservative estimate
-          competition: basicExists ? 40 : 20,
-          trendScore: 5.0 // Neutral trend
-        }
-      };
-    }
+    // In a real implementation, this would query external APIs, databases, etc.
+    // For now, return a mock feasibility report
+    return {
+      exists: Math.random() > 0.7, // 30% chance idea already exists
+      similarProjects: [
+        `Similar project 1 for ${ideaData.ideaName}`,
+        `Related concept: ${ideaData.ideaName} variant`
+      ],
+      feasibilityScore: Math.random() * 100, // Random score 0-100
+      marketAnalysis: {
+        marketSize: Math.floor(Math.random() * 1000000),
+        competition: Math.floor(Math.random() * 50),
+        trendScore: Math.random() * 10
+      }
+    };
   }
 
   // Calculate similarity between two strings (simple implementation)
@@ -664,70 +535,6 @@ export class PersonalKNIRVGRAPHService {
     };
   }
 
-  // Export complete graph as JSON
-  async exportGraphAsJSON(): Promise<string | null> {
-    if (!this.currentGraph) return null;
-
-    const exportData = {
-      graph: this.currentGraph,
-      exportedAt: new Date().toISOString(),
-      version: '1.0',
-      sliceAnalysis: this.exportGraphWithSlices()?.sliceAnalysis
-    };
-
-    return JSON.stringify(exportData, null, 2);
-  }
-
-  // Import graph from JSON
-  async importGraphFromJSON(jsonData: string): Promise<boolean> {
-    try {
-      const importData = JSON.parse(jsonData);
-
-      if (!importData.graph || !importData.graph.id) {
-        throw new Error('Invalid graph data format');
-      }
-
-      const graph = importData.graph as PersonalGraph;
-
-      // Validate graph structure
-      if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
-        throw new Error('Invalid graph structure');
-      }
-
-      // Update metadata
-      graph.metadata.lastModified = Date.now();
-      graph.metadata.version = (graph.metadata.version || 0) + 1;
-
-      this.currentGraph = graph;
-      await this.saveGraphToDatabase(graph);
-
-      console.log(`Imported graph with ${graph.nodes.length} nodes and ${graph.edges.length} edges`);
-      return true;
-    } catch (error) {
-      console.error('Failed to import graph:', error);
-      return false;
-    }
-  }
-
-  // Get all graphs for a user
-  async getAllUserGraphs(userId: string): Promise<PersonalGraph[]> {
-    try {
-      const db = rxdbService.getDatabase();
-      const graphDocs = await db.graphs.find({ selector: { userId } }).exec();
-
-      return graphDocs.map(doc => ({
-        id: doc.id,
-        userId: doc.userId,
-        nodes: doc.nodes as GraphNode[],
-        edges: doc.edges as GraphEdge[],
-        metadata: doc.metadata as PersonalGraph['metadata']
-      }));
-    } catch (error) {
-      console.error('Failed to get user graphs:', error);
-      return [];
-    }
-  }
-
   // Reset graph
   async resetGraph(): Promise<void> {
     if (this.currentGraph) {
@@ -737,152 +544,26 @@ export class PersonalKNIRVGRAPHService {
     }
   }
 
-  // Get graph statistics with slice analysis
+  // Get graph statistics
   getGraphStats(): {
     nodeCount: number;
     edgeCount: number;
     complexity: number;
     nodeTypes: Record<string, number>;
-    sliceStats: {
-      factualitySlices: number;
-      feasibilitySlices: number;
-      avgFactualityConfidence: number;
-      avgFeasibilityScore: number;
-    };
   } | null {
     if (!this.currentGraph) return null;
 
     const nodeTypes: Record<string, number> = {};
-    let factualitySlices = 0;
-    let feasibilitySlices = 0;
-    let totalFactualityConfidence = 0;
-    let totalFeasibilityScore = 0;
-
     this.currentGraph.nodes.forEach(node => {
       nodeTypes[node.type] = (nodeTypes[node.type] || 0) + 1;
-
-      const nodeData = node.data as NodeWithSlices;
-      if (nodeData.factualitySlice) {
-        factualitySlices++;
-        totalFactualityConfidence += nodeData.factualitySlice.response.confidence;
-      }
-      if (nodeData.capabilitySlice) {
-        factualitySlices++;
-        totalFactualityConfidence += nodeData.capabilitySlice.response.confidence;
-      }
-      if (nodeData.feasibilitySlice) {
-        feasibilitySlices++;
-        totalFeasibilityScore += nodeData.feasibilitySlice.feasibilityScore;
-      }
     });
 
     return {
       nodeCount: this.currentGraph.nodes.length,
       edgeCount: this.currentGraph.edges.length,
       complexity: this.currentGraph.metadata.complexity,
-      nodeTypes,
-      sliceStats: {
-        factualitySlices,
-        feasibilitySlices,
-        avgFactualityConfidence: factualitySlices > 0 ? totalFactualityConfidence / factualitySlices : 0,
-        avgFeasibilityScore: feasibilitySlices > 0 ? totalFeasibilityScore / feasibilitySlices : 0
-      }
+      nodeTypes
     };
-  }
-
-  // Export graph with slices for analysis
-  exportGraphWithSlices(): {
-    graph: PersonalGraph;
-    sliceAnalysis: {
-      errorNodes: Array<{ id: string; factualitySlice?: FactualitySlice }>;
-      capabilityNodes: Array<{ id: string; capabilitySlice?: FactualitySlice }>;
-      propertyNodes: Array<{ id: string; feasibilitySlice?: FeasibilityReport }>;
-    };
-  } | null {
-    if (!this.currentGraph) return null;
-
-    const errorNodes = this.currentGraph.nodes
-      .filter(n => n.type === 'error')
-      .map(n => ({
-        id: n.id,
-        factualitySlice: (n.data as NodeWithSlices).factualitySlice
-      }));
-
-    const capabilityNodes = this.currentGraph.nodes
-      .filter(n => n.type === 'capability')
-      .map(n => ({
-        id: n.id,
-        capabilitySlice: (n.data as NodeWithSlices).capabilitySlice
-      }));
-
-    const propertyNodes = this.currentGraph.nodes
-      .filter(n => n.type === 'property')
-      .map(n => ({
-        id: n.id,
-        feasibilitySlice: (n.data as NodeWithSlices).feasibilitySlice
-      }));
-
-    return {
-      graph: this.currentGraph,
-      sliceAnalysis: {
-        errorNodes,
-        capabilityNodes,
-        propertyNodes
-      }
-    };
-  }
-
-  // Get slice summary for a specific node
-  getNodeSliceSummary(nodeId: string): {
-    nodeType: string;
-    factualitySlice?: {
-      confidence: number;
-      citationCount: number;
-      evidenceQuality: number;
-    };
-    feasibilitySlice?: {
-      feasibilityScore: number;
-      exists: boolean;
-      similarProjectCount: number;
-      technicalComplexity: string;
-    };
-  } | null {
-    if (!this.currentGraph) return null;
-
-    const node = this.currentGraph.nodes.find(n => n.id === nodeId);
-    if (!node) return null;
-
-    const nodeData = node.data as NodeWithSlices;
-    const result: ReturnType<typeof this.getNodeSliceSummary> = {
-      nodeType: node.type
-    };
-
-    if (nodeData.factualitySlice) {
-      result.factualitySlice = {
-        confidence: nodeData.factualitySlice.response.confidence,
-        citationCount: nodeData.factualitySlice.citations.length,
-        evidenceQuality: nodeData.factualitySlice.response.evidence_quality_score || 0
-      };
-    }
-
-    if (nodeData.capabilitySlice) {
-      result.factualitySlice = {
-        confidence: nodeData.capabilitySlice.response.confidence,
-        citationCount: nodeData.capabilitySlice.citations.length,
-        evidenceQuality: nodeData.capabilitySlice.response.evidence_quality_score || 0
-      };
-    }
-
-    if (nodeData.feasibilitySlice) {
-      result.feasibilitySlice = {
-        feasibilityScore: nodeData.feasibilitySlice.feasibilityScore,
-        exists: nodeData.feasibilitySlice.exists,
-        similarProjectCount: nodeData.feasibilitySlice.similar.length,
-        technicalComplexity: nodeData.feasibilitySlice.technicalComplexity
-      };
-    }
-
-    return result;
   }
 }
 

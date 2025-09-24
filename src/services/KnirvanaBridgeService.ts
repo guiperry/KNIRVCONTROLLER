@@ -178,8 +178,8 @@ export class KnirvanaBridgeService {
       id: node.id,
       position: node.position,
       name: skillData.skillName || node.label,
-      creator: skillData.creator || 'System',
-      usageCount: skillData.usageCount || 0,
+      creator: (skillData as any).creator || 'System',
+      usageCount: (skillData as any).usageCount || 0,
       proficiency: skillData.proficiency || 0.5,
       category: skillData.category || 'general',
       description: skillData.description || node.label
@@ -369,23 +369,6 @@ export class KnirvanaBridgeService {
     return false;
   }
 
-  // Public methods for testing
-  public testAwardNRN(amount: number): void {
-    this.awardNRN(amount);
-  }
-
-  public testSpendNRN(amount: number): boolean {
-    return this.spendNRN(amount);
-  }
-
-  public async testSyncErrorNodeToPersonalGraph(node: unknown): Promise<void> {
-    await this.syncErrorNodeToPersonalGraph(node as KnirvanaErrorNode);
-  }
-
-  public async testSyncAgentToPersonalGraph(agent: unknown): Promise<void> {
-    await this.syncAgentToPersonalGraph(agent as KnirvanaAgent);
-  }
-
   // Sync Methods to Personal Graph
   private async syncErrorNodeToPersonalGraph(knirvanaNode: KnirvanaErrorNode): Promise<void> {
     if (!this.personalGraph) return;
@@ -426,7 +409,7 @@ export class KnirvanaBridgeService {
       for (const insight of collectiveInsights) {
         await personalKNIRVGRAPHService.addSkillNode({
           skillId: `collective_${insight.id}`,
-          skillName: insight.name,
+          skillName: (insight as any).name || `Insight ${insight.id}`,
           description: insight.description,
           category: 'collective',
           proficiency: 0.8
@@ -466,113 +449,6 @@ export class KnirvanaBridgeService {
 
   getCurrentGraph(): PersonalGraph | null {
     return this.personalGraph;
-  }
-
-  // KNIRVANA Game Session Connection
-  async connectToGameSession(gameSession: {
-    sessionId: string;
-    gameId: string;
-    endpoint: string;
-    publicKey: string;
-  }): Promise<void> {
-    try {
-      // Store session info
-      this.gameState.sessionId = gameSession.sessionId;
-      this.gameState.gameId = gameSession.gameId;
-
-      // Simulate connection to KNIRVANA game session
-      console.log(`Connecting to KNIRVANA session: ${gameSession.sessionId}`);
-
-      // In a real implementation, this would establish WebSocket connection
-      // For now, we'll simulate the connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      this.gameState.isConnected = true;
-      console.log('Connected to KNIRVANA game session');
-
-    } catch (error) {
-      console.error('Failed to connect to KNIRVANA session:', error);
-      throw error;
-    }
-  }
-
-  // Merge personal graph with collective KNIRVANA graph
-  async mergeGraphs(personalGraph: PersonalGraph, options: {
-    onProgress?: (progress: number) => void;
-  } = {}): Promise<{
-    success: boolean;
-    mergedNodes: number;
-    clusteredErrors: number;
-    clusteredIdeas: number;
-    sharedCapabilities: number;
-  }> {
-    try {
-      options.onProgress?.(10);
-
-      // Stage 1: Analyze personal graph
-      const errorNodes = personalGraph.nodes.filter(n => n.type === 'error');
-      const ideaNodes = personalGraph.nodes.filter(n => n.type === 'idea' || n.type === 'property');
-      const capabilityNodes = personalGraph.nodes.filter(n => n.type === 'capability');
-
-      options.onProgress?.(30);
-
-      // Stage 2: Semantic clustering with collective graph
-      let clusteredErrors = 0;
-      let clusteredIdeas = 0;
-      let sharedCapabilities = 0;
-
-      // Simulate error clustering
-      for (const _errorNode of errorNodes) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        clusteredErrors++;
-        options.onProgress?.(30 + (clusteredErrors / errorNodes.length) * 20);
-      }
-
-      // Simulate idea clustering
-      for (const _ideaNode of ideaNodes) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        clusteredIdeas++;
-        options.onProgress?.(50 + (clusteredIdeas / ideaNodes.length) * 20);
-      }
-
-      // Simulate capability sharing
-      for (const _capNode of capabilityNodes) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        sharedCapabilities++;
-        options.onProgress?.(70 + (sharedCapabilities / capabilityNodes.length) * 20);
-      }
-
-      // Stage 3: Update collective graph state
-      this.gameState.collectiveNodes = [
-        ...this.gameState.collectiveNodes,
-        ...errorNodes.map(node => ({
-          id: node.id,
-          position: { x: node.position.x, y: node.position.y, z: 0 },
-          type: node.type,
-          difficulty: 1,
-          bounty: 10,
-          isBeingSolved: false,
-          progress: 0,
-          description: node.label,
-          context: node.data,
-          timestamp: Date.now()
-        }))
-      ];
-
-      options.onProgress?.(100);
-
-      return {
-        success: true,
-        mergedNodes: personalGraph.nodes.length,
-        clusteredErrors,
-        clusteredIdeas,
-        sharedCapabilities
-      };
-
-    } catch (error) {
-      console.error('Graph merge failed:', error);
-      throw error;
-    }
   }
 
   // Cleanup

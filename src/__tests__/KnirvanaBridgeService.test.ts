@@ -286,15 +286,17 @@ describe('KnirvanaBridgeService', () => {
       const gameState = knirvanaBridgeService.getGameState();
       const initialBalance = gameState.nrnBalance;
 
-      // Use public test method
-      knirvanaBridgeService.testAwardNRN(100);
+      // Directly access private method for testing (would be better with a public method)
+      const bridgeInstance = knirvanaBridgeService as unknown as { awardNRN: (amount: number) => void };
+      bridgeInstance.awardNRN(100);
 
       const updatedGameState = knirvanaBridgeService.getGameState();
       expect(updatedGameState.nrnBalance).toBe(initialBalance + 100);
     });
 
     test('should spend NRN correctly when sufficient balance', () => {
-      const spendResult = knirvanaBridgeService.testSpendNRN(50);
+      const bridgeInstance = knirvanaBridgeService as unknown as { spendNRN: (amount: number) => boolean };
+      const spendResult = bridgeInstance.spendNRN(50);
 
       expect(spendResult).toBe(true);
 
@@ -303,7 +305,8 @@ describe('KnirvanaBridgeService', () => {
     });
 
     test('should not spend NRN when insufficient balance', () => {
-      const spendResult = knirvanaBridgeService.testSpendNRN(600); // More than 500
+      const bridgeInstance = knirvanaBridgeService as unknown as { spendNRN: (amount: number) => boolean };
+      const spendResult = bridgeInstance.spendNRN(600); // More than 500
 
       expect(spendResult).toBe(false);
 
@@ -368,7 +371,8 @@ describe('KnirvanaBridgeService', () => {
       errorNode.solverAgent = 'test_agent';
 
       // Sync back (would normally be called internally)
-      await knirvanaBridgeService.testSyncErrorNodeToPersonalGraph(errorNode);
+      const bridgeInstance = knirvanaBridgeService as unknown as { syncErrorNodeToPersonalGraph: (node: unknown) => Promise<void> };
+      await bridgeInstance.syncErrorNodeToPersonalGraph(errorNode);
 
       // Verify personal graph was updated
       expect(personalKNIRVGRAPHService.getCurrentGraph).toHaveBeenCalled();
@@ -386,7 +390,8 @@ describe('KnirvanaBridgeService', () => {
         capabilities: ['testing']
       };
 
-      await knirvanaBridgeService.testSyncAgentToPersonalGraph(newAgent);
+      const bridgeInstance = knirvanaBridgeService as unknown as { syncAgentToPersonalGraph: (agent: unknown) => Promise<void> };
+      await bridgeInstance.syncAgentToPersonalGraph(newAgent);
 
       expect(personalKNIRVGRAPHService.addSkillNode).toHaveBeenCalledWith({
         skillId: 'test_agent',

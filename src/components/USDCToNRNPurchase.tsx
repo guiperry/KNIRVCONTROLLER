@@ -22,7 +22,7 @@ export const USDCToNRNPurchase: React.FC<USDCToNRNPurchaseProps> = ({
     connect,
     disconnect,
     convertUSDCToNRN,
-    getConversionHistory
+    getUSDCBalance
   } = useAbstraxionWallet();
 
   const [usdcAmount, setUsdcAmount] = useState('');
@@ -38,12 +38,14 @@ export const USDCToNRNPurchase: React.FC<USDCToNRNPurchaseProps> = ({
 
   const loadConversionHistory = useCallback(async () => {
     try {
-      const history = await getConversionHistory();
-      setConversionHistory(history);
+      // TODO: Implement getConversionHistory in useXIONWallet
+      // const history = await getConversionHistory();
+      // setConversionHistory(history);
+      setConversionHistory([]);
     } catch (error) {
       console.error('Failed to load conversion history:', error);
     }
-  }, [getConversionHistory]);
+  }, []);
 
   useEffect(() => {
     if (isConnected) {
@@ -153,21 +155,23 @@ export const USDCToNRNPurchase: React.FC<USDCToNRNPurchaseProps> = ({
       </div>
 
       {/* Account Info */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <div className="text-sm text-gray-600 mb-2">
-          <span className="font-medium">Account:</span> {account?.name || 'Unknown'}
+      {account && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="text-sm text-gray-600 mb-2">
+            <span className="font-medium">Account:</span> {account.name}
+          </div>
+          <div className="text-sm text-gray-600 mb-2">
+            <span className="font-medium">Type:</span> {account.metaAccountType}
+            {account.gasless && <span className="ml-2 text-green-600">⚡ Gasless</span>}
+          </div>
+          <div className="text-sm text-gray-600 mb-1">
+            <span className="font-medium">USDC Balance:</span> {account.usdcBalance}
+          </div>
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">NRN Balance:</span> {account.nrnBalance}
+          </div>
         </div>
-        <div className="text-sm text-gray-600 mb-2">
-          <span className="font-medium">Type:</span> {account?.metaAccountType || 'Unknown'}
-          {account?.gasless && <span className="ml-2 text-green-600">⚡ Gasless</span>}
-        </div>
-        <div className="text-sm text-gray-600 mb-1">
-          <span className="font-medium">USDC Balance:</span> {account?.usdcBalance || '0'}
-        </div>
-        <div className="text-sm text-gray-600">
-          <span className="font-medium">NRN Balance:</span> {account?.nrnBalance || '0'}
-        </div>
-      </div>
+      )}
 
       {/* Purchase Form */}
       <div className="space-y-4">

@@ -1,19 +1,5 @@
 import { EventEmitter } from './EventEmitter';
 
-export interface Agent {
-  id: string;
-  type: string;
-  capabilities: string[];
-  state: unknown;
-}
-
-export interface AgentResponse {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-  metadata?: Record<string, unknown>;
-}
-
 export interface SEALConfig {
   maxAgents: number;
   learningRate: number;
@@ -401,278 +387,62 @@ export class SEALFramework extends EventEmitter {
     // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
 
-    // Generate intelligent response based on agent type and real processing
-    try {
-      switch (agent.type) {
-        case 'text_processor':
-          return await this.processTextInput(input, context, agent);
-        case 'error_analyzer':
-          return await this.analyzeError(input, context, agent);
-        case 'context_processor':
-          return await this.processContext(input, context, agent);
-        case 'idea_evaluator':
-          return await this.evaluateIdea(input, context, agent);
-        default:
-          return await this.processGenericInput(input, context, agent);
-      }
-    } catch (error) {
-      console.error('Agent processing failed:', error);
-      return {
-        type: 'error_response',
-        content: `Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        confidence: 0.1,
-        shouldSpeak: false,
-        text: 'I encountered an error while processing your request.',
-      };
+    // Generate mock response based on agent type
+    switch (agent.type) {
+      case 'text_processor':
+        return {
+          type: 'text_response',
+          content: `Processed text input: ${JSON.stringify(input)}`,
+          confidence: 0.85,
+          shouldSpeak: (context as { inputType?: string }).inputType === 'voice',
+          text: `I've analyzed your input and found relevant information.`,
+        };
+
+      case 'code_assistant':
+        return {
+          type: 'code_response',
+          content: `Generated code solution for: ${JSON.stringify(input)}`,
+          code: '// Generated code would be here\nfunction solution() {\n  return "implemented";\n}',
+          confidence: 0.90,
+          text: `I've generated a code solution for your request.`,
+        };
+
+      case 'problem_solver':
+        return {
+          type: 'solution_response',
+          content: `Analyzed problem and found solution: ${JSON.stringify(input)}`,
+          steps: ['Identify the problem', 'Analyze constraints', 'Generate solution'],
+          confidence: 0.80,
+          text: `I've broken down the problem into manageable steps.`,
+        };
+
+      case 'visual_analyzer':
+        return {
+          type: 'visual_response',
+          content: `Analyzed visual input: ${JSON.stringify(input)}`,
+          objects: ['detected objects would be here'],
+          confidence: 0.75,
+          text: `I've identified several objects in the visual input.`,
+        };
+
+      case 'voice_handler':
+        return {
+          type: 'voice_response',
+          content: `Processed voice input: ${JSON.stringify(input)}`,
+          command: 'parsed command would be here',
+          confidence: 0.88,
+          shouldSpeak: true,
+          text: `I understand your voice command.`,
+        };
+
+      default:
+        return {
+          type: 'generic_response',
+          content: `Processed by ${agent.type}: ${JSON.stringify(input)}`,
+          confidence: 0.70,
+          text: `I've processed your request using the ${agent.type} agent.`,
+        };
     }
-  }
-
-  private async processTextInput(input: unknown, context: unknown, agent: Agent): Promise<AgentResponse> {
-    const textInput = typeof input === 'string' ? input : JSON.stringify(input);
-
-    // Real text processing logic
-    const wordCount = textInput.split(/\s+/).length;
-    const sentiment = this.analyzeSentiment(textInput);
-    const keywords = this.extractKeywords(textInput);
-
-    return {
-      type: 'text_response',
-      content: {
-        originalText: textInput,
-        wordCount,
-        sentiment,
-        keywords,
-        analysis: `Analyzed ${wordCount} words with ${sentiment} sentiment`
-      },
-      confidence: Math.min(0.95, 0.5 + (keywords.length * 0.1)),
-      shouldSpeak: (context as { inputType?: string }).inputType === 'voice',
-      text: `I've analyzed your text and identified ${keywords.length} key concepts with ${sentiment} sentiment.`,
-    };
-  }
-
-  private async analyzeError(input: unknown, context: unknown, agent: Agent): Promise<AgentResponse> {
-    const errorText = typeof input === 'string' ? input : JSON.stringify(input);
-
-    // Real error analysis
-    const errorPatterns = this.detectErrorPatterns(errorText);
-    const severity = this.assessErrorSeverity(errorText);
-    const suggestions = this.generateErrorSuggestions(errorPatterns);
-
-    return {
-      type: 'error_analysis',
-      content: {
-        patterns: errorPatterns,
-        severity,
-        suggestions,
-        confidence: errorPatterns.length > 0 ? 0.8 : 0.3
-      },
-      confidence: errorPatterns.length > 0 ? 0.8 : 0.3,
-      shouldSpeak: severity === 'high',
-      text: `I found ${errorPatterns.length} error patterns with ${severity} severity. ${suggestions[0] || 'No immediate suggestions available.'}`
-    };
-  }
-
-  private async processContext(input: unknown, context: unknown, agent: Agent): Promise<AgentResponse> {
-    const contextData = typeof input === 'object' ? input : { raw: input };
-
-    // Real context processing
-    const relevantFields = this.extractRelevantFields(contextData);
-    const contextType = this.classifyContext(contextData);
-    const capabilities = this.identifyCapabilities(contextData);
-
-    return {
-      type: 'context_analysis',
-      content: {
-        contextType,
-        relevantFields,
-        capabilities,
-        processingTime: Date.now()
-      },
-      confidence: relevantFields.length > 0 ? 0.75 : 0.4,
-      shouldSpeak: false,
-      text: `Processed ${contextType} context with ${capabilities.length} identified capabilities.`
-    };
-  }
-
-  private async evaluateIdea(input: unknown, context: unknown, agent: Agent): Promise<AgentResponse> {
-    const ideaText = typeof input === 'string' ? input : JSON.stringify(input);
-
-    // Real idea evaluation
-    const novelty = this.assessNovelty(ideaText);
-    const feasibility = this.assessFeasibility(ideaText);
-    const marketPotential = this.assessMarketPotential(ideaText);
-
-    return {
-      type: 'idea_evaluation',
-      content: {
-        novelty,
-        feasibility,
-        marketPotential,
-        overallScore: (novelty + feasibility + marketPotential) / 3
-      },
-      confidence: 0.7,
-      shouldSpeak: false,
-      text: `Idea evaluation: ${novelty.toFixed(1)}/10 novelty, ${feasibility.toFixed(1)}/10 feasibility, ${marketPotential.toFixed(1)}/10 market potential.`
-    };
-  }
-
-  private async processGenericInput(input: unknown, context: unknown, agent: Agent): Promise<AgentResponse> {
-    return {
-      type: 'generic_response',
-      content: `Processed input of type ${typeof input}`,
-      confidence: 0.5,
-      shouldSpeak: false,
-      text: `I've processed your input using the ${agent.type} agent.`,
-    };
-  }
-
-  // Helper methods for real processing
-  private analyzeSentiment(text: string): string {
-    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'love', 'like'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'horrible', 'worst', 'fail'];
-
-    const words = text.toLowerCase().split(/\s+/);
-    const positiveCount = words.filter(word => positiveWords.includes(word)).length;
-    const negativeCount = words.filter(word => negativeWords.includes(word)).length;
-
-    if (positiveCount > negativeCount) return 'positive';
-    if (negativeCount > positiveCount) return 'negative';
-    return 'neutral';
-  }
-
-  private extractKeywords(text: string): string[] {
-    const words = text.toLowerCase().split(/\s+/);
-    const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
-
-    return words
-      .filter(word => word.length > 3 && !stopWords.includes(word))
-      .filter((word, index, arr) => arr.indexOf(word) === index) // Remove duplicates
-      .slice(0, 10); // Top 10 keywords
-  }
-
-  private detectErrorPatterns(errorText: string): string[] {
-    const patterns: string[] = [];
-
-    if (/error|exception|fail/i.test(errorText)) patterns.push('error_keyword');
-    if (/\d{3}\s*error/i.test(errorText)) patterns.push('error_code');
-    if (/stack\s*trace/i.test(errorText)) patterns.push('stack_trace');
-    if (/timeout|connection/i.test(errorText)) patterns.push('network_issue');
-    if (/memory|heap/i.test(errorText)) patterns.push('memory_issue');
-    if (/null|undefined/i.test(errorText)) patterns.push('null_reference');
-
-    return patterns;
-  }
-
-  private assessErrorSeverity(errorText: string): string {
-    const criticalKeywords = ['crash', 'fatal', 'critical', 'system', 'security'];
-    const highKeywords = ['error', 'exception', 'fail', 'timeout'];
-    const mediumKeywords = ['warning', 'deprecated', 'slow'];
-
-    const text = errorText.toLowerCase();
-
-    if (criticalKeywords.some(keyword => text.includes(keyword))) return 'critical';
-    if (highKeywords.some(keyword => text.includes(keyword))) return 'high';
-    if (mediumKeywords.some(keyword => text.includes(keyword))) return 'medium';
-
-    return 'low';
-  }
-
-  private generateErrorSuggestions(patterns: string[]): string[] {
-    const suggestions: string[] = [];
-
-    if (patterns.includes('error_code')) suggestions.push('Check error code documentation');
-    if (patterns.includes('stack_trace')) suggestions.push('Analyze stack trace for root cause');
-    if (patterns.includes('network_issue')) suggestions.push('Verify network connectivity');
-    if (patterns.includes('memory_issue')) suggestions.push('Check memory usage and optimize');
-    if (patterns.includes('null_reference')) suggestions.push('Add null checks and validation');
-
-    if (suggestions.length === 0) suggestions.push('Review logs for additional context');
-
-    return suggestions;
-  }
-
-  private extractRelevantFields(contextData: unknown): string[] {
-    if (typeof contextData !== 'object' || contextData === null) return [];
-
-    const fields: string[] = [];
-    const obj = contextData as Record<string, unknown>;
-
-    Object.keys(obj).forEach(key => {
-      if (typeof obj[key] === 'string' || typeof obj[key] === 'number') {
-        fields.push(key);
-      }
-    });
-
-    return fields;
-  }
-
-  private classifyContext(contextData: unknown): string {
-    if (typeof contextData !== 'object' || contextData === null) return 'unknown';
-
-    const obj = contextData as Record<string, unknown>;
-    const keys = Object.keys(obj);
-
-    if (keys.includes('url') || keys.includes('endpoint')) return 'api_context';
-    if (keys.includes('file') || keys.includes('path')) return 'file_context';
-    if (keys.includes('user') || keys.includes('session')) return 'user_context';
-    if (keys.includes('config') || keys.includes('settings')) return 'configuration_context';
-
-    return 'general_context';
-  }
-
-  private identifyCapabilities(contextData: unknown): string[] {
-    const capabilities: string[] = [];
-
-    if (typeof contextData !== 'object' || contextData === null) return capabilities;
-
-    const obj = contextData as Record<string, unknown>;
-
-    if (obj.url || obj.endpoint) capabilities.push('api_integration');
-    if (obj.file || obj.path) capabilities.push('file_processing');
-    if (obj.database || obj.db) capabilities.push('data_storage');
-    if (obj.auth || obj.token) capabilities.push('authentication');
-    if (obj.cache || obj.redis) capabilities.push('caching');
-
-    return capabilities;
-  }
-
-  private assessNovelty(ideaText: string): number {
-    // Simple novelty assessment based on uniqueness of concepts
-    const words = ideaText.toLowerCase().split(/\s+/);
-    const uniqueWords = [...new Set(words)];
-    const noveltyScore = Math.min(10, (uniqueWords.length / words.length) * 10);
-
-    return noveltyScore;
-  }
-
-  private assessFeasibility(ideaText: string): number {
-    // Assess feasibility based on complexity indicators
-    const complexityKeywords = ['ai', 'blockchain', 'quantum', 'neural', 'machine learning'];
-    const simpleKeywords = ['website', 'app', 'tool', 'service', 'platform'];
-
-    const text = ideaText.toLowerCase();
-    const complexityCount = complexityKeywords.filter(keyword => text.includes(keyword)).length;
-    const simplicityCount = simpleKeywords.filter(keyword => text.includes(keyword)).length;
-
-    // Higher complexity reduces feasibility
-    const feasibilityScore = Math.max(1, 8 - complexityCount + simplicityCount);
-
-    return Math.min(10, feasibilityScore);
-  }
-
-  private assessMarketPotential(ideaText: string): number {
-    // Assess market potential based on market-related keywords
-    const marketKeywords = ['business', 'customer', 'user', 'market', 'revenue', 'profit', 'scale'];
-    const nichKeywords = ['specific', 'niche', 'specialized', 'custom', 'unique'];
-
-    const text = ideaText.toLowerCase();
-    const marketCount = marketKeywords.filter(keyword => text.includes(keyword)).length;
-    const nicheCount = nichKeywords.filter(keyword => text.includes(keyword)).length;
-
-    // Market keywords increase potential, niche keywords slightly decrease it
-    const marketScore = Math.min(10, 5 + marketCount - (nicheCount * 0.5));
-
-    return Math.max(1, marketScore);
   }
 
   public async invokeSkill(skillId: string, parameters: unknown): Promise<unknown> {

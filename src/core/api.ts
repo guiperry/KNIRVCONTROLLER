@@ -1,6 +1,6 @@
 // Unified Backend API - Frontend Module
 import { loraEngine } from './loraEngine';
-import { typeScriptAgentCompiler as wasmCompiler } from './wasmCompiler';
+import { wasmCompiler } from './wasmCompiler';
 import { protobufHandler } from './protobufHandler';
 
 export class BackendAPI {
@@ -29,20 +29,8 @@ export class BackendAPI {
   // WASM endpoints
   async compileWasm(sourceCode: string): Promise<{ success: boolean; wasmBytes?: Uint8Array }> {
     try {
-      const result = await wasmCompiler.compileAgent({
-        agent_name: 'temp-agent',
-        agent_description: 'Temporary Agent',
-        adapters: [],
-        config: {
-          target_platform: 'typescript',
-          enable_lora: false,
-          max_memory_mb: 64,
-          capabilities: [],
-          environment: {}
-        },
-        cortex_wasm: new Uint8Array()
-      });
-      return { success: result.success, wasmBytes: result.agent_wasm };
+      const wasmBytes = await wasmCompiler.compileRust(sourceCode);
+      return { success: true, wasmBytes };
     } catch {
       return { success: false };
     }
