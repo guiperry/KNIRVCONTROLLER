@@ -50,8 +50,6 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/scripts ./scripts
 
-# Copy migration script
-COPY scripts/migrate-to-nebuladb.ts ./scripts/
 
 # Create non-root user
 USER node
