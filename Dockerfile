@@ -50,7 +50,7 @@ COPY package*.json ./
 RUN npm ci --only=production --legacy-peer-deps && \
     npm cache clean --force
 
-# Copy built application from builder stage
+# Copy built application and scripts from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/scripts ./scripts
@@ -61,9 +61,9 @@ USER node
 # Expose ports
 EXPOSE 3000 3001
 
-# Health check (simplified for now)
+# Health check using the health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/ || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Environment variables
 ENV NODE_ENV=production
@@ -72,5 +72,5 @@ ENV DATABASE_PATH=/app/data/knirvcontroller.db
 # Volume for persistent data
 VOLUME ["/app/data"]
 
-# Start command
+# Start command using npm start (now points to static server)
 CMD ["npm", "start"]
