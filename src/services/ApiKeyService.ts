@@ -87,6 +87,8 @@ class ApiKeyService {
     'write:wallet',
     'read:skills',
     'write:skills',
+    'read:capabilities',
+    'read:properties',
     'read:analytics',
     'admin:all'
   ];
