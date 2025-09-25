@@ -52,7 +52,6 @@ RUN npm ci --only=production --legacy-peer-deps && \
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/build ./build
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/scripts ./scripts
 
