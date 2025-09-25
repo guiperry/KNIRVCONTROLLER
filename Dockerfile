@@ -8,6 +8,7 @@ WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
+COPY package-lock.json ./
 COPY tsconfig*.json ./
 
 # Install dependencies including dev dependencies for build
@@ -47,6 +48,7 @@ RUN mkdir -p /app/data && \
 
 # Copy package files and install production dependencies
 COPY package*.json ./
+COPY package-lock.json ./
 RUN npm ci --only=production --legacy-peer-deps && \
     npm cache clean --force
 
